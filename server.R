@@ -7,6 +7,15 @@ library(DT)
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
+  
+  #### UI ####
+  
+  output$hashtags_UI <- renderUI({
+    shiny::selectizeInput(inputId = "keywords",
+                          label = "Introduce hashtag", choices = hashtags[[input$language]])
+  })
+  
+  ## Wordcloud
    
   output$wordcloud <- renderPlot(expr = {
     # if (input$type=="static") {

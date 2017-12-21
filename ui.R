@@ -16,8 +16,7 @@ dashboardPage(
             box(
               shiny::selectInput(inputId = "language",
                                  label = "Filter tweets by language", choices = lang, selected = "en"),
-              shiny::selectizeInput(inputId = "keywords",
-                                    label = "Introduce hashtag", choices = hashtags), 
+              uiOutput(outputId = "hashtags_UI"),
               shiny::radioButtons(inputId = "sentimentL", label = "Type of wordcloud", choices = c("Unified", "Sentiment"))
             ),
             fluidRow(DT::dataTableOutput(outputId = "table"))
