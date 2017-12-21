@@ -16,18 +16,19 @@ shinyServer(function(input, output) {
   })
   
   ## Wordcloud
-   
+  
   output$wordcloud <- renderPlot(expr = {
     # if (input$type=="static") {
-    temp <- dataset %>% 
-      filter(lang==input$language) %>% 
-      filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$keywords, set = x))) %>%
-      select(clean_text) %>% 
-      unnest_tokens(input = clean_text, output = word) %>% 
-      anti_join(stop_words, by = "word") 
+    if (is.null(input$keywords)==FALSE) {
+      temp <- dataset %>% 
+        filter(lang==input$language) %>% 
+        filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$keywords, set = x))) %>%
+        select(clean_text) %>% 
+        unnest_tokens(input = clean_text, output = word) %>% 
+        anti_join(stop_words, by = "word") 
       if (input$sentimentL=="Sentiment") {
         temp %>% 
-        inner_join(get_sentiments("bing"), by = "word") %>%
+          inner_join(get_sentiments("bing"), by = "word") %>%
           count(word, sentiment, sort = TRUE) %>%
           acast(word ~ sentiment, value.var = "n", fill = 0) %>%
           comparison.cloud(colors = c("#F8766D", "#00BFC4"),
@@ -39,17 +40,20 @@ shinyServer(function(input, output) {
                          random.order = FALSE, vfont=c("sans serif","plain"), colors = pal))
         
       }
-    # }
+      # }
+    }
   })
   
   # Filter data based on selections
   output$table <- DT::renderDataTable(
-    DT::datatable(data = dataset %>% 
-                    filter(lang==input$language) %>% 
-                    filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$keywords, set = x))) %>%
-                    select(screen_name, date, text, Link) %>% 
-                    arrange(desc(date)), escape = FALSE
-    )
+    if (is.null(input$keywords)==FALSE) {
+      DT::datatable(data = dataset %>% 
+                      filter(lang==input$language) %>% 
+                      filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$keywords, set = x))) %>%
+                      select(screen_name, date, text, Link) %>% 
+                      arrange(desc(date)), escape = FALSE
+      )
+    }
   )
   
   # output$wordcloud2 <- renderWordcloud2({
