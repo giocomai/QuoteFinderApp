@@ -50,7 +50,10 @@ dashboardPage(
                           choices = EPGroupShort, 
                           selected = c("EPP", "S&D"))
 )
-            )
+            ),
+fluidRow(title = "Quick data on selected tweets",
+    infoBoxOutput(outputId = "TweetsNr"))
+
             ,
             fluidRow(DT::dataTableOutput(outputId = "table"))
     )

@@ -81,7 +81,7 @@ shinyServer(function(input, output) {
             n > quantile(n)[1]& n<=quantile(n)[2] ~ blues[2],
             n > quantile(n)[2]& n<=quantile(n)[3] ~ blues[3],
             n > quantile(n)[3]& n<=quantile(n)[4] ~ blues[4],
-            n > quantile(n)[4]& n<=quantile(n)[5] ~ blues[4],
+            n > quantile(n)[4]& n<=quantile(n)[5] ~ blues[4]
           )) %>% pull(colour)
         temp %>% 
           wordcloud2(size = 0.5, color = colour)
@@ -109,6 +109,20 @@ shinyServer(function(input, output) {
       }
     }
   )
+  
+  ### InfoBox ####
+  
+  output$TweetsNr <- renderInfoBox({
+    infoBox(title = "Number of tweets",
+            value =  nrow(dataset %>% 
+                            filter(lang==input$language) %>% 
+                            filter(purrr::map_lgl(.x = hashtags,
+                                                  .f = function (x) is.element(el = input$keywords, set = x)))),
+            icon = icon("twitter"),
+            color = "blue"
+    )
+  })
+  
 })
 
 
