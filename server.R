@@ -18,31 +18,54 @@ shinyServer(function(input, output) {
   ## Wordcloud
   
   output$wordcloud <- renderPlot(expr = {
-    # if (input$type=="static") {
-    if (is.null(input$keywords)==FALSE) {
+    # If tab is "By hashtag"
+    if (input$wordcloud_filters=="By hashtag") {
+      if (is.null(input$keywords)==FALSE) {
+        temp <- dataset %>% 
+          filter(lang==input$language) %>% 
+          filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$keywords, set = x))) %>%
+          select(clean_text) %>% 
+          unnest_tokens(input = clean_text, output = word) %>% 
+          anti_join(stop_words, by = "word") 
+        if (input$sentimentL=="Sentiment") {
+          temp %>% 
+            inner_join(get_sentiments("bing"), by = "word") %>%
+            count(word, sentiment, sort = TRUE) %>%
+            acast(word ~ sentiment, value.var = "n", fill = 0) %>%
+            comparison.cloud(colors = c("#F8766D", "#00BFC4"),
+                             max.words = 100, scale = c(2.5, 1), vfont=c("serif","plain"))
+        } else {
+          temp %>% 
+            count(word) %>% 
+            with(wordcloud(word, n, scale = c(2.5, 1), max.words = 100, min.freq = 1,
+                           random.order = FALSE, vfont=c("sans serif","plain"), colors = pal))
+          
+        }
+      }
+      ##### By EP Group #####
+    } else if (input$wordcloud_filters=="By EP group") {
       temp <- dataset %>% 
         filter(lang==input$language) %>% 
-        filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$keywords, set = x))) %>%
-        select(clean_text) %>% 
+        filter(stringr::str_detect(string = GroupShort, pattern = paste(input$EPgroup, collapse = "|"))) %>%
+        select(clean_text, NATIONALITY, GroupShort) %>% 
         unnest_tokens(input = clean_text, output = word) %>% 
         anti_join(stop_words, by = "word") 
-      if (input$sentimentL=="Sentiment") {
+      if (length(input$EPgroup)==1) {
+        
+      } else if (length(input$EPgroup)>1) {
         temp %>% 
-          inner_join(get_sentiments("bing"), by = "word") %>%
-          count(word, sentiment, sort = TRUE) %>%
-          acast(word ~ sentiment, value.var = "n", fill = 0) %>%
-          comparison.cloud(colors = c("#F8766D", "#00BFC4"),
-                           max.words = 100, scale = c(2.5, 1), vfont=c("serif","plain"))
-      } else {
-        temp %>% 
-          count(word) %>% 
-          with(wordcloud(word, n, scale = c(2.5, 1), max.words = 100, min.freq = 1,
-                         random.order = FALSE, vfont=c("sans serif","plain"), colors = pal))
+          count(word, GroupShort, sort = TRUE) %>% 
+          acast(word ~ GroupShort, value.var = "n", fill = 0) %>%
+          comparison.cloud(
+            #colors = c("#F8766D", "#00BFC4"),
+            max.words = 100, scale = c(2.5, 1), vfont=c("serif","plain"))
         
       }
-      # }
+      
     }
-  })
+    
+    
+  }, execOnResize = TRUE)
   
   # Filter data based on selections
   output$table <- DT::renderDataTable(
