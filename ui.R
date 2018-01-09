@@ -9,11 +9,25 @@ dashboardPage(
     menuItem("Comparisons", tabName = "comparisons", icon = icon("bar-chart")),
     menuItem("Time series", tabName = "timeSeries", icon = icon("line-chart"))
   )),
-  dashboardBody(tabItems(
+  dashboardBody(
+    tags$script(HTML(
+    "$(document).on('click', '#canvas', function() {",
+    'word = document.getElementById("wcSpan").innerHTML;',
+    "Shiny.onInputChange('selected_word', word);",
+    "});"
+  )),
+  tabItems(
     
     # First tab content
     tabItem(tabName = "wordcloud",
-            box(plotOutput(outputId = "wordcloud")),
+            tabBox(id = "wordcloud_plot",
+                   tabPanel("Classic wordcloud",
+                            plotOutput(outputId = "wordcloud")),
+                   tabPanel("Interactive wordcloud",
+                            wordcloud2Output("wordcloud2"), 
+                            HTML("<b>Tip</b>: by clicking on a term in the wordcloud, only tweets including it are shown in the table below.")
+                            )
+            ),
             box(shiny::selectInput(inputId = "language",
                                    label = "Filter tweets by language",
                                    choices = lang,
@@ -41,17 +55,9 @@ dashboardPage(
             fluidRow(DT::dataTableOutput(outputId = "table"))
     )
     ,
-    # By group
-    tabItem(tabName = "byGroup",
-            box(plotOutput("wordcloud_ByGroup")),
-            box(
-              shiny::selectInput(inputId = "language_ByGroup",
-                                 label = "Filter tweets by language",
-                                 choices = lang,
-                                 selected = "en")
-            ),
-            fluidRow(DT::dataTableOutput(outputId = "table_ByGroup")
-            )
+
+    tabItem(tabName = "Temp"
+
     )
   )
   )
