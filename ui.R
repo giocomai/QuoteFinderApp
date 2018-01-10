@@ -69,8 +69,8 @@ dashboardPage(
                           selected = c("EPP", "S&D"))
 )
             ),
-fluidRow(title = "Quick data on selected tweets",
-    infoBoxOutput(outputId = "TweetsNr"))
+box(title = "Enabled filters",
+    infoBoxOutput(outputId = "TweetsNr"), width = 12)
 
             ,
             fluidRow(DT::dataTableOutput(outputId = "table"))

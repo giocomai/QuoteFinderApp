@@ -21,4 +21,3 @@ blues <- bluesFunc(5)
 
 # European formatting of large numbers
 point <- scales::format_format(big.mark = ".", decimal.mark = ",", scientific = FALSE)
-

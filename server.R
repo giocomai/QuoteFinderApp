@@ -19,23 +19,29 @@ shinyServer(function(input, output, session) {
   
   observe({
     if (input$dateRangeRadio=="Last week") {
-      start <- Sys.Date()-7
+      startDate <<- Sys.Date()-7
     } else if (input$dateRangeRadio=="Last month") {
-      start <- Sys.Date()-31
+      startDate <<- Sys.Date()-31
     } else if (input$dateRangeRadio=="Last three months") {
-      start <- Sys.Date()-91
+      startDate <<- Sys.Date()-91
     }
     
-    updateDateRangeInput(session, "dateRange",
-                         start = start,
-                         end = Sys.Date()
-    )
+    if (input$dateRangeRadio=="Custom range") {
+      updateDateRangeInput(session, "dateRange",
+                           start = startDate,
+                           end = Sys.Date())
+    }
   })
-  
+
   
   observe({
-    dataset <<- datasetFull %>% 
-      filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange)))
+    if (input$dateRangeRadio=="Custom range") {
+      dataset <<- datasetFull %>% 
+        filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange)))
+    } else {
+      dataset <<- datasetFull %>% 
+        filter(date>=startDate)
+    }
   })
   
   
@@ -44,6 +50,7 @@ shinyServer(function(input, output, session) {
     output$wordcloud <- renderPlot(expr = {
       # reload if dateRange is changed
       input$dateRange
+      input$dateRangeRadio
 
       # If tab is "By hashtag"
       if (input$wordcloud_filters=="By hashtag") {
@@ -62,13 +69,13 @@ shinyServer(function(input, output, session) {
               count(word, sentiment, sort = TRUE) %>%
               acast(word ~ sentiment, value.var = "n", fill = 0) %>%
               comparison.cloud(colors = c("#F8766D", "#00BFC4"),
-                               max.words = 100, scale = c(2.5, 1), vfont=c("serif","plain"))
+                               max.words = 100, scale = c(2.5, 1), family = "Carlito", font = 1)
           } else {
             par(mar = rep(0, 4))
             temp %>% 
               count(word) %>% 
-              with(wordcloud(word, n, scale = c(2.5, 1), max.words = 100, min.freq = 1,
-                             random.order = FALSE, vfont=c("sans serif","plain"), colors = pal))
+              with(wordcloud(word, n, scale = c(3, 1), max.words = 100, min.freq = 1,
+                             random.order = FALSE, family = "Carlito", font = 1, colors = pal))
             
           }
         }
@@ -90,7 +97,7 @@ shinyServer(function(input, output, session) {
             acast(word ~ GroupShort, value.var = "n", fill = 0) %>%
             comparison.cloud(
               #colors = c("#F8766D", "#00BFC4"),
-              max.words = 100, scale = c(2.5, 1), vfont=c("serif","plain"))
+              max.words = 100, scale = c(2.5, 1), family = "Carlito", font = 1)
         }
       }
     }, execOnResize = TRUE)
@@ -99,6 +106,7 @@ shinyServer(function(input, output, session) {
   output$wordcloud2 <- renderWordcloud2({
     # reload if dateRange is changed
     input$dateRange
+    input$dateRangeRadio
     
     if (input$wordcloud_filters=="By hashtag") {
       if (is.null(input$keywords)==FALSE) {
@@ -130,6 +138,7 @@ shinyServer(function(input, output, session) {
   output$table <- DT::renderDataTable({
     # reload if dateRange is changed
     input$dateRange
+    input$dateRangeRadio
     
     if (is.null(input$keywords)==FALSE) {
       if (is.null(input$selected_word)==FALSE) {
@@ -154,6 +163,7 @@ shinyServer(function(input, output, session) {
   output$TweetsNr <- renderInfoBox({
     # reload if dateRange is changed
     input$dateRange
+    input$dateRangeRadio
     
     infoBox(title = "Number of tweets",
             value =  nrow(dataset %>% 
