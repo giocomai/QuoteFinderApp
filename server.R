@@ -6,7 +6,7 @@ library(tidyverse)
 library(DT)
 
 # Define server logic required to draw a histogram
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
   
   #### UI ####
   
@@ -18,9 +18,26 @@ shinyServer(function(input, output) {
   #### Subset date range ####
   
   observe({
+    if (input$dateRangeRadio=="Last week") {
+      start <- Sys.Date()-7
+    } else if (input$dateRangeRadio=="Last month") {
+      start <- Sys.Date()-31
+    } else if (input$dateRangeRadio=="Last three months") {
+      start <- Sys.Date()-91
+    }
+    
+    updateDateRangeInput(session, "dateRange",
+                         start = start,
+                         end = Sys.Date()
+    )
+  })
+  
+  
+  observe({
     dataset <<- datasetFull %>% 
       filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange)))
   })
+  
   
   #### Wordcloud ####
   

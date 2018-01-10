@@ -4,12 +4,12 @@ library(shinydashboard)
 dashboardPage(
   dashboardHeader(title = "EdjNet QuoteFinder"),
   dashboardSidebar(sidebarMenu(
-    menuItem("wordcloud", tabName = "wordcloud", icon = icon("cloud")),
+    menuItem("Wordcloud", tabName = "wordcloud", icon = icon("cloud")),
     menuItem("Trends", tabName = "Trends", icon = icon("comments")),
     menuItem("Comparisons", tabName = "comparisons", icon = icon("bar-chart")),
     menuItem("Time series", tabName = "timeSeries", icon = icon("line-chart")),
     shiny::HTML("<hr><div class='col-sm-12'><p><b>The QuoteFinder lets you explore</b></p></div>"),
-    infoBox(title = "Total tweets", value = point(nrow(datasetFull)), icon = icon("twitter"), width = 12, color = "blue", fill = TRUE),
+    infoBox(title = "tweets", value = point(nrow(datasetFull)), icon = icon("twitter"), width = 12, color = "blue", fill = TRUE),
     infoBox(title = "by", value = paste(length(unique(datasetFull$screen_name)), "MEPs"), icon = icon("users"), width = 12, color = "blue", fill = TRUE)),
     infoBox(title = "posted since", value = min(datasetFull$date), icon = icon("calendar"), width = 12, color = "blue", fill = TRUE)
   ),
@@ -33,11 +33,19 @@ dashboardPage(
                    )
             ),
             box(
-              shiny::dateRangeInput(inputId = 'dateRange',
-                                    weekstart = 1,
-                                    label = "Select date range",
-                                    start = min(datasetFull$date), end = max(datasetFull$date)
+              shiny::radioButtons(inputId = "dateRangeRadio",
+                                  label = "Select date range",
+                                  choices = as.list(c("Last week", "Last month", "Last three months", "Custom range")),
+                                  selected = "Last month"),
+              conditionalPanel(
+                condition = "input.dateRangeRadio == 'Custom range'",
+                shiny::dateRangeInput(inputId = 'dateRange',
+                                      weekstart = 1,
+                                      label = "Select date range",
+                                      start = min(datasetFull$date), end = max(datasetFull$date)
+                )
               ),
+              
               shiny::selectInput(inputId = "language",
                                  label = "Filter tweets by language",
                                  choices = lang,
