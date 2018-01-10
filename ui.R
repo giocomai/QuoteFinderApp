@@ -4,10 +4,7 @@ library(shinydashboard)
 dashboardPage(
   dashboardHeader(title = "EdjNet QuoteFinder"),
   dashboardSidebar(sidebarMenu(
-    menuItem("Wordcloud", tabName = "wordcloud", icon = icon("cloud")),
-    menuItem("Trends", tabName = "Trends", icon = icon("comments")),
-    menuItem("Comparisons", tabName = "comparisons", icon = icon("bar-chart")),
-    menuItem("Time series", tabName = "timeSeries", icon = icon("line-chart")),
+    menuItem("Twitter", tabName = "wordcloud", icon = icon("twitter")),
     shiny::HTML("<hr><div class='col-sm-12'><p><b>The QuoteFinder lets you explore</b></p></div>"),
     infoBox(title = "tweets", value = point(nrow(datasetFull)), icon = icon("twitter"), width = 12, color = "blue", fill = TRUE),
     infoBox(title = "by", value = paste(length(unique(datasetFull$screen_name)), "MEPs"), icon = icon("users"), width = 12, color = "blue", fill = TRUE)),
@@ -69,8 +66,12 @@ dashboardPage(
                           selected = c("EPP", "S&D"))
 )
             ),
-box(title = "Enabled filters",
-    infoBoxOutput(outputId = "TweetsNr"), width = 12)
+box(title = NULL,
+    shiny::htmlOutput(outputId = "HeaderInfoBox"),
+    infoBoxOutput(outputId = "TweetsNr"),
+    infoBoxOutput(outputId = "MEPsNr"),
+    infoBoxOutput(outputId = "DaysNr"), width = 12
+    )
 
             ,
             fluidRow(DT::dataTableOutput(outputId = "table"))

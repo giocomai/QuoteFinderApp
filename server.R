@@ -160,20 +160,53 @@ shinyServer(function(input, output, session) {
   
   ### InfoBox ####
   
+  output$HeaderInfoBox <- renderText({
+    
+    paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>#", input$keywords, "</i><br /></div>")
+    
+  })
+  
   output$TweetsNr <- renderInfoBox({
     # reload if dateRange is changed
     input$dateRange
     input$dateRangeRadio
+    if (is.null(input$keywords)) {
+      selectedHashtag <- as.character(hashtags$en[1])
+    } else {
+      selectedHashtag <- input$keywords
+    }
     
-    infoBox(title = "Number of tweets",
-            value =  nrow(dataset %>% 
-                            filter(lang==input$language) %>% 
-                            filter(purrr::map_lgl(.x = hashtags,
-                                                  .f = function (x) is.element(el = input$keywords, set = x)))),
+    infoBox(title = "Tweets",
+            value =  point(nrow(dataset %>%
+                             filter(purrr::map_lgl(.x = hashtags,
+                                                   .f = function (x) is.element(el = selectedHashtag, set = x))))),
             icon = icon("twitter"),
             color = "blue"
     )
   })
+  
+  output$MEPsNr <- renderInfoBox({
+    # reload if dateRange is changed
+    input$dateRange
+    input$dateRangeRadio
+    
+    infoBox(title = "by",
+            value = paste(length(unique(dataset$screen_name)), "MEPs"),
+            icon = icon("users"), color = "blue", fill = FALSE)
+  
+  })
+
+  output$DaysNr <- renderInfoBox({
+    # reload if dateRange is changed
+    input$dateRange
+    input$dateRangeRadio
+    
+    infoBox(title = "posted in", value = paste(max(dataset$date)-min(dataset$date), "days"),
+            icon = icon("calendar"), color = "blue", fill = FALSE)
+    
+  })
+
+  
   
 })
 
