@@ -6,7 +6,7 @@ library(stringr)
 library(tidyverse)
 library(reshape2)
 
-dataset <- readRDS(file = file.path("data", "dataset.rds"))
+datasetFull <- readRDS(file = file.path("data", "dataset.rds"))
 hashtags <- readRDS(file = file.path("data", "hashtags.rds"))
 lang <- readRDS(file = file.path("data", "lang.rds"))
 EPGroupShort <- readRDS(file = file.path("data", "EPGroupShort.rds"))
@@ -18,3 +18,7 @@ pal <- pal[-(1:5)]
 
 bluesFunc <- colorRampPalette(colors = c("#4292C6", "#08306B"))
 blues <- bluesFunc(5)
+
+# European formatting of large numbers
+point <- scales::format_format(big.mark = ".", decimal.mark = ",", scientific = FALSE)
+

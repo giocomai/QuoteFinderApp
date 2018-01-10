@@ -15,12 +15,23 @@ shinyServer(function(input, output) {
                           label = "Introduce hashtag", choices = hashtags[[input$language]])
   })
   
+  #### Subset date range ####
+  
+  observe({
+    dataset <<- datasetFull %>% 
+      filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange)))
+  })
+  
   #### Wordcloud ####
   
     output$wordcloud <- renderPlot(expr = {
+      # reload if dateRange is changed
+      input$dateRange
+
       # If tab is "By hashtag"
       if (input$wordcloud_filters=="By hashtag") {
         if (is.null(input$keywords)==FALSE) {
+          par(mar = rep(0, 4))
           temp <- dataset %>% 
             filter(lang==input$language) %>% 
             filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$keywords, set = x))) %>%
@@ -28,6 +39,7 @@ shinyServer(function(input, output) {
             unnest_tokens(input = clean_text, output = word) %>% 
             anti_join(stop_words, by = "word") 
           if (input$sentimentL=="Sentiment") {
+            par(mar = rep(0, 4))
             temp %>% 
               inner_join(get_sentiments("bing"), by = "word") %>%
               count(word, sentiment, sort = TRUE) %>%
@@ -35,6 +47,7 @@ shinyServer(function(input, output) {
               comparison.cloud(colors = c("#F8766D", "#00BFC4"),
                                max.words = 100, scale = c(2.5, 1), vfont=c("serif","plain"))
           } else {
+            par(mar = rep(0, 4))
             temp %>% 
               count(word) %>% 
               with(wordcloud(word, n, scale = c(2.5, 1), max.words = 100, min.freq = 1,
@@ -44,6 +57,7 @@ shinyServer(function(input, output) {
         }
         ##### By EP Group #####
       } else if (input$wordcloud_filters=="By EP group") {
+        par(mar = rep(0, 4))
         temp <- dataset %>% 
           filter(lang==input$language) %>% 
           filter(stringr::str_detect(string = GroupShort, pattern = paste(input$EPgroup, collapse = "|"))) %>%
@@ -53,6 +67,7 @@ shinyServer(function(input, output) {
         if (length(input$EPgroup)==1) {
           
         } else if (length(input$EPgroup)>1) {
+          par(mar = rep(0, 4))
           temp %>% 
             count(word, GroupShort, sort = TRUE) %>% 
             acast(word ~ GroupShort, value.var = "n", fill = 0) %>%
@@ -65,6 +80,9 @@ shinyServer(function(input, output) {
   #### Wordcloud 2 ####
   
   output$wordcloud2 <- renderWordcloud2({
+    # reload if dateRange is changed
+    input$dateRange
+    
     if (input$wordcloud_filters=="By hashtag") {
       if (is.null(input$keywords)==FALSE) {
         temp <- dataset %>% 
@@ -89,9 +107,13 @@ shinyServer(function(input, output) {
     }
   })
   
+  #### DataTable ####
   
   # Filter data based on selections
-  output$table <- DT::renderDataTable(
+  output$table <- DT::renderDataTable({
+    # reload if dateRange is changed
+    input$dateRange
+    
     if (is.null(input$keywords)==FALSE) {
       if (is.null(input$selected_word)==FALSE) {
         DT::datatable(data = dataset %>% 
@@ -108,11 +130,14 @@ shinyServer(function(input, output) {
                         arrange(desc(date)), escape = FALSE)
       }
     }
-  )
+  })
   
   ### InfoBox ####
   
   output$TweetsNr <- renderInfoBox({
+    # reload if dateRange is changed
+    input$dateRange
+    
     infoBox(title = "Number of tweets",
             value =  nrow(dataset %>% 
                             filter(lang==input$language) %>% 

@@ -5,10 +5,14 @@ dashboardPage(
   dashboardHeader(title = "EdjNet QuoteFinder"),
   dashboardSidebar(sidebarMenu(
     menuItem("wordcloud", tabName = "wordcloud", icon = icon("cloud")),
-    menuItem("By EP group", tabName = "byGroup", icon = icon("comments")),
+    menuItem("Trends", tabName = "Trends", icon = icon("comments")),
     menuItem("Comparisons", tabName = "comparisons", icon = icon("bar-chart")),
-    menuItem("Time series", tabName = "timeSeries", icon = icon("line-chart"))
-  )),
+    menuItem("Time series", tabName = "timeSeries", icon = icon("line-chart")),
+    shiny::HTML("<hr><div class='col-sm-12'><p><b>The QuoteFinder lets you explore</b></p></div>"),
+    infoBox(title = "Total tweets", value = point(nrow(datasetFull)), icon = icon("twitter"), width = 12, color = "blue", fill = TRUE),
+    infoBox(title = "by", value = paste(length(unique(datasetFull$screen_name)), "MEPs"), icon = icon("users"), width = 12, color = "blue", fill = TRUE)),
+    infoBox(title = "posted since", value = min(datasetFull$date), icon = icon("calendar"), width = 12, color = "blue", fill = TRUE)
+  ),
   dashboardBody(
     tags$script(HTML(
     "$(document).on('click', '#canvas', function() {",
@@ -26,12 +30,18 @@ dashboardPage(
                    tabPanel("Interactive wordcloud",
                             wordcloud2Output("wordcloud2"), 
                             HTML("<b>Tip</b>: by clicking on a term in the wordcloud, only tweets including it are shown in the table below.")
-                            )
+                   )
             ),
-            box(shiny::selectInput(inputId = "language",
-                                   label = "Filter tweets by language",
-                                   choices = lang,
-                                   selected = "en")),
+            box(
+              shiny::dateRangeInput(inputId = 'dateRange',
+                                    weekstart = 1,
+                                    label = "Select date range",
+                                    start = min(datasetFull$date), end = max(datasetFull$date)
+              ),
+              shiny::selectInput(inputId = "language",
+                                 label = "Filter tweets by language",
+                                 choices = lang,
+                                 selected = "en")),
             
             tabBox(
               # title = "First tabBox",
