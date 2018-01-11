@@ -11,8 +11,19 @@ shinyServer(function(input, output, session) {
   #### UI ####
   
   output$hashtags_UI <- renderUI({
-    shiny::selectizeInput(inputId = "keywords",
-                          label = "Select hashtag", choices = c(list("All tweets"), hashtags[[input$language]]))
+    shiny::selectizeInput(inputId = "hashtags",
+                          label = "Select hashtag",
+                          choices = c(list("All tweets"),
+                                      hashtags[[input$language]]))
+  })
+  
+  
+  output$MaxWords_UI <- renderUI({
+    shiny::sliderInput(inputId = "MaxWords",
+                          label = "Maximum number of words in the wordcloud",
+                        min = 1, 
+                       max = if_else(condition = is.null(wordNr), true = 100, false = wordNr)
+                       )
   })
   
   #### Subset date range ####
@@ -35,6 +46,9 @@ shinyServer(function(input, output, session) {
 
   
   observe({
+    input$dateRange
+    input$dateRangeRadio
+    
     if (input$dateRangeRadio=="Custom range") {
       dataset <<- datasetFull %>% 
         filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange)))
@@ -51,12 +65,13 @@ shinyServer(function(input, output, session) {
       # reload if dateRange is changed
       input$dateRange
       input$dateRangeRadio
+      input$hashtags
 
       # If tab is "By hashtag"
       if (input$wordcloud_filters=="By hashtag") {
-        if (is.null(input$keywords)==FALSE) {
+        if (is.null(input$hashtags)==FALSE) {
           par(mar = rep(0, 4))
-          if (input$keywords=="All tweets") {
+          if (input$hashtags=="All tweets") {
             temp <- dataset %>% 
               filter(lang==input$language) %>% 
               select(clean_text) %>% 
@@ -65,7 +80,7 @@ shinyServer(function(input, output, session) {
           } else {
             temp <- dataset %>% 
               filter(lang==input$language) %>% 
-              filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$keywords, set = x))) %>%
+              filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$hashtags, set = x))) %>%
               select(clean_text) %>% 
               unnest_tokens(input = clean_text, output = word) %>% 
               anti_join(stop_words, by = "word") 
@@ -77,7 +92,7 @@ shinyServer(function(input, output, session) {
               count(word, sentiment, sort = TRUE) %>%
               acast(word ~ sentiment, value.var = "n", fill = 0) %>%
               comparison.cloud(colors = c("#F8766D", "#00BFC4"),
-                               max.words = 100, scale = c(2.5, 1), family = "Carlito", font = 1)
+                               max.words = 100, scale = c(3, 1), family = "Carlito", font = 1)
           } else {
             par(mar = rep(0, 4))
             temp %>% 
@@ -105,26 +120,41 @@ shinyServer(function(input, output, session) {
             acast(word ~ GroupShort, value.var = "n", fill = 0) %>%
             comparison.cloud(
               #colors = c("#F8766D", "#00BFC4"),
-              max.words = 100, scale = c(2.5, 1), family = "Carlito", font = 1)
+              max.words = 100, scale = c(3, 1), family = "Carlito", font = 1)
         }
       }
     }, execOnResize = TRUE)
+  
   #### Wordcloud 2 ####
   
   output$wordcloud2 <- renderWordcloud2({
     # reload if dateRange is changed
     input$dateRange
     input$dateRangeRadio
+    input$hashtags
     
     if (input$wordcloud_filters=="By hashtag") {
-      if (is.null(input$keywords)==FALSE) {
-        temp <- dataset %>% 
-          filter(lang==input$language) %>% 
-          filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$keywords, set = x))) %>%
+      
+      if (is.null(input$hashtags)==FALSE) {
+        if (input$hashtags=="All tweets") {
+          temp <- dataset %>% 
+            filter(lang==input$language)
+          
+        } else {
+          temp <- dataset %>% 
+            filter(lang==input$language) %>% 
+            filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$hashtags, set = x))) 
+        }
+        temp <- temp %>%
           select(clean_text) %>% 
           unnest_tokens(input = clean_text, output = word) %>% 
           anti_join(stop_words, by = "word")  %>% 
-          count(word) 
+          count(word, sort = TRUE)
+        
+        wordNr <<- nrow(temp)
+      
+        temp <- temp %>%
+          top_n(n = input$MaxWords, wt = n)
         # customise output color, gradients of blue by frequency
         colour <- temp %>% 
           mutate(colour = case_when(
@@ -147,30 +177,54 @@ shinyServer(function(input, output, session) {
     # reload if dateRange is changed
     input$dateRange
     input$dateRangeRadio
+    input$hashtags
     
-    if (is.null(input$keywords)==FALSE) {
+    
       if (is.null(input$selected_word)==FALSE) {
-        DT::datatable(data = dataset %>% 
-                        filter(lang==input$language) %>% 
-                        filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$keywords, set = x))) %>%
-                        filter(stringr::str_detect(string = clean_text, pattern = gsub(":.*","",isolate(input$selected_word)))) %>% 
-                        select(screen_name, date, text, Link, GroupShort) %>% 
-                        arrange(desc(date)), escape = FALSE)
+        if(input$hashtags=="All tweets") {
+          DT::datatable(data = dataset %>% 
+                          filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) %>% 
+                          filter(lang==input$language) %>% 
+                          filter(stringr::str_detect(string = clean_text, pattern = gsub(":.*","",isolate(input$selected_word)))) %>% 
+                          select(screen_name, date, text, Link, GroupShort) %>% 
+                          arrange(desc(date)), escape = FALSE)
+        } else {
+          DT::datatable(data = dataset %>% 
+                          filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) %>% 
+                          filter(lang==input$language) %>% 
+                          filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$hashtags, set = x)))%>% 
+                          filter(stringr::str_detect(string = clean_text, pattern = gsub(":.*","",isolate(input$selected_word)))) %>% 
+                          select(screen_name, date, text, Link, GroupShort) %>% 
+                          arrange(desc(date)), escape = FALSE)
+        }
+        
       } else {
-        DT::datatable(data = dataset %>% 
-                        filter(lang==input$language) %>% 
-                        filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$keywords, set = x))) %>%
-                        select(screen_name, date, text, Link, GroupShort) %>% 
-                        arrange(desc(date)), escape = FALSE)
+        if(is.null(input$hashtags)){
+          DT::datatable(data = dataset %>% 
+                          filter(lang==input$language) %>%
+                          select(screen_name, date, text, Link, GroupShort) %>% 
+                          arrange(desc(date)), escape = FALSE)
+        } else if(input$hashtags=="All tweets") {
+          DT::datatable(data = dataset %>% 
+                          filter(lang==input$language) %>%
+                          select(screen_name, date, text, Link, GroupShort) %>% 
+                          arrange(desc(date)), escape = FALSE)
+        } else {
+          DT::datatable(data = dataset %>% 
+                          filter(lang==input$language) %>%
+                          filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$hashtags, set = x))) %>% 
+                          select(screen_name, date, text, Link, GroupShort) %>% 
+                          arrange(desc(date)), escape = FALSE)
+        }
+        
       }
-    }
   })
   
   ### InfoBox ####
   
   output$HeaderInfoBox <- renderText({
     
-    paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>#", input$keywords, "</i><br /></div>")
+    paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>#", input$hashtags, "</i><br /></div>")
     
   })
   
@@ -178,23 +232,22 @@ shinyServer(function(input, output, session) {
     # reload if dateRange is changed
     input$dateRange
     input$dateRangeRadio
+    input$hashtags
     
-  
-    if (is.null(input$keywords)) {
-      selectedHashtag <- "All tweets"
-    } else {
-      selectedHashtag <- input$keywords
-    }
-    
-    if (selectedHashtag=="All tweets") {
-      filteredTweetsNr <- nrow(dataset %>% 
+    if (is.null(input$hashtags)) {
+      filteredTweetsNr <- nrow(dataset %>%
+                                 filter(lang==input$language) %>% 
                                  filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))))
-      
+    } else if (input$hashtags=="All tweets") {
+      filteredTweetsNr <- nrow(dataset %>%
+                                 filter(lang==input$language) %>% 
+                                 filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))))
     } else {
       filteredTweetsNr <- nrow(dataset %>%
+                                 filter(lang==input$language) %>% 
                                  filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) %>% 
                                  filter(purrr::map_lgl(.x = hashtags,
-                                                       .f = function (x) is.element(el = selectedHashtag, set = x))))
+                                                       .f = function (x) is.element(el = input$hashtags, set = x))))
     }
     
     
