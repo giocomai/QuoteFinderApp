@@ -12,7 +12,7 @@ shinyServer(function(input, output, session) {
   
   output$hashtags_UI <- renderUI({
     shiny::selectizeInput(inputId = "keywords",
-                          label = "Introduce hashtag", choices = hashtags[[input$language]])
+                          label = "Select hashtag", choices = c(list("All tweets"), hashtags[[input$language]]))
   })
   
   #### Subset date range ####
@@ -56,12 +56,20 @@ shinyServer(function(input, output, session) {
       if (input$wordcloud_filters=="By hashtag") {
         if (is.null(input$keywords)==FALSE) {
           par(mar = rep(0, 4))
-          temp <- dataset %>% 
-            filter(lang==input$language) %>% 
-            filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$keywords, set = x))) %>%
-            select(clean_text) %>% 
-            unnest_tokens(input = clean_text, output = word) %>% 
-            anti_join(stop_words, by = "word") 
+          if (input$keywords=="All tweets") {
+            temp <- dataset %>% 
+              filter(lang==input$language) %>% 
+              select(clean_text) %>% 
+              unnest_tokens(input = clean_text, output = word) %>% 
+              anti_join(stop_words, by = "word") 
+          } else {
+            temp <- dataset %>% 
+              filter(lang==input$language) %>% 
+              filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$keywords, set = x))) %>%
+              select(clean_text) %>% 
+              unnest_tokens(input = clean_text, output = word) %>% 
+              anti_join(stop_words, by = "word") 
+          }
           if (input$sentimentL=="Sentiment") {
             par(mar = rep(0, 4))
             temp %>% 
@@ -171,20 +179,32 @@ shinyServer(function(input, output, session) {
     input$dateRange
     input$dateRangeRadio
     
+  
     if (is.null(input$keywords)) {
-      selectedHashtag <- as.character(hashtags$en[1])
+      selectedHashtag <- "All tweets"
     } else {
       selectedHashtag <- input$keywords
     }
     
+    if (selectedHashtag=="All tweets") {
+      filteredTweetsNr <- nrow(dataset %>% 
+                                 filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))))
+      
+    } else {
+      filteredTweetsNr <- nrow(dataset %>%
+                                 filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) %>% 
+                                 filter(purrr::map_lgl(.x = hashtags,
+                                                       .f = function (x) is.element(el = selectedHashtag, set = x))))
+    }
+    
+    
     infoBox(title = "Tweets",
-            value =  point(nrow(dataset %>%
-                                  filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) %>% 
-                                  filter(purrr::map_lgl(.x = hashtags,
-                                                        .f = function (x) is.element(el = selectedHashtag, set = x))))),
+            value =  point(filteredTweetsNr),
             icon = icon("twitter"),
             color = "blue"
     )
+    
+    
   })
   
   output$MEPsNr <- renderInfoBox({
