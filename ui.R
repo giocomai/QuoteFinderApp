@@ -6,18 +6,12 @@ dashboardPage(
   dashboardSidebar(sidebarMenu(
     menuItem("Twitter", tabName = "TwitterMEP", icon = icon("twitter")),
     shiny::HTML("<hr><div class='col-sm-12'><p><b>The QuoteFinder lets you explore</b></p></div>"),
-    infoBox(title = "tweets", value = point(nrow(datasetFull)), icon = icon("twitter"), width = 12, color = "blue", fill = TRUE),
-    infoBox(title = "by", value = paste(length(unique(datasetFull$screen_name)), "MEPs"), icon = icon("users"), width = 12, color = "blue", fill = TRUE)),
-    infoBox(title = "posted since", value = min(datasetFull$date), icon = icon("calendar"), width = 12, color = "blue", fill = TRUE)
+    infoBox(title = "tweets", value = point(nrow(dataset)), icon = icon("twitter"), width = 12, color = "blue", fill = TRUE),
+    infoBox(title = "by", value = paste(length(unique(dataset$screen_name)), "MEPs"), icon = icon("users"), width = 12, color = "blue", fill = TRUE)),
+    infoBox(title = "posted since", value = min(dataset$date), icon = icon("calendar"), width = 12, color = "blue", fill = TRUE)
   ),
   dashboardBody(
-    
-    tags$script(HTML(
-      "$(document).on('click', '#canvas', function() {",
-      'word = document.getElementById("wcSpan").innerHTML;',
-      "Shiny.onInputChange('selected_word', word);",
-      "});"
-    )),
+    wc2ClickedWord(cloudOutputId = "wordcloud2", inputId = "selected_word"),
     
     tabItems(
       
@@ -31,11 +25,8 @@ dashboardPage(
                               shiny::sliderInput(inputId = "MaxWords",
                                                  label = "Maximum number of words in the wordcloud",
                                                  min = 0L, 
-                                                 max = if_else(condition = is.null(wordNr),
-                                                               true = 100L, false = 
-                                                                 if_else(condition = wordNr>1000,
-                                                                         true = 1000L, false = wordNr)),
-                                                 value = 100L,
+                                                 max = 1000L,
+                                                 value = 200L,
                                                  sep = "."
                               ), 
                               HTML("<b>Tip</b>: by clicking on a term in the wordcloud, only tweets including it are shown in the table below.")
@@ -55,7 +46,7 @@ dashboardPage(
                   shiny::dateRangeInput(inputId = 'dateRange',
                                         weekstart = 1,
                                         label = "Select date range",
-                                        start = min(datasetFull$date), end = max(datasetFull$date)
+                                        start = min(dataset$date), end = max(dataset$date)
                   )
                 ),
                 

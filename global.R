@@ -6,8 +6,8 @@ library(stringr)
 library(tidyverse)
 library(reshape2)
 
-datasetFull <- readRDS(file = file.path("data", "dataset.rds"))
-hashtags <- readRDS(file = file.path("data", "hashtags.rds"))
+dataset <- readRDS(file = file.path("data", "dataset.rds"))
+hashtagsList <- readRDS(file = file.path("data", "hashtags.rds"))
 lang <- readRDS(file = file.path("data", "lang.rds"))
 EPGroupShort <- readRDS(file = file.path("data", "EPGroupShort.rds"))
 countries <- readRDS(file = file.path("data", "countries.rds"))
@@ -21,3 +21,17 @@ blues <- bluesFunc(5)
 
 # European formatting of large numbers
 point <- scales::format_format(big.mark = ".", decimal.mark = ",", scientific = FALSE)
+
+
+
+
+## function to give wordcloud2 click interactivity
+## from https://github.com/Lchiffon/wordcloud2/issues/25
+wc2ClickedWord = function(cloudOutputId, inputId) {
+  shiny::tags$script(shiny::HTML(
+    sprintf("$(document).on('click', '#%s', function() {", cloudOutputId),
+    'word = document.getElementById("wcSpan").innerHTML;',
+    sprintf("Shiny.onInputChange('%s', word);", inputId),
+    "});"
+  ))
+}
