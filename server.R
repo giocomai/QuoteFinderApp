@@ -170,6 +170,7 @@ shinyServer(function(input, output, session) {
     # reload if dateRange is changed
     input$dateRange
     input$dateRangeRadio
+    
     if (is.null(input$keywords)) {
       selectedHashtag <- as.character(hashtags$en[1])
     } else {
@@ -178,8 +179,9 @@ shinyServer(function(input, output, session) {
     
     infoBox(title = "Tweets",
             value =  point(nrow(dataset %>%
-                             filter(purrr::map_lgl(.x = hashtags,
-                                                   .f = function (x) is.element(el = selectedHashtag, set = x))))),
+                                  filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) %>% 
+                                  filter(purrr::map_lgl(.x = hashtags,
+                                                        .f = function (x) is.element(el = selectedHashtag, set = x))))),
             icon = icon("twitter"),
             color = "blue"
     )
