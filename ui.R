@@ -78,7 +78,7 @@ dashboardPage(
                   shiny::htmlOutput(outputId = "HeaderInfoBox"),
                   infoBoxOutput(outputId = "TweetsNr"),
                   infoBoxOutput(outputId = "MEPsNr"),
-                  infoBoxOutput(outputId = "DaysNr"), width = 12
+                  infoBoxOutput(outputId = "DaysNr"),width = 12
               )
               ,
               #### Box 5: table ####

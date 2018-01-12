@@ -212,14 +212,16 @@ shinyServer(function(input, output, session) {
                           filter(lang==input$language) %>% 
                           filter(stringr::str_detect(string = clean_text, pattern = stringr::fixed(gsub(":.*","",isolate(input$selected_word)), ignore_case = TRUE))) %>% 
                           select(screen_name, date, text, Link, GroupShort) %>% 
-                          arrange(desc(date)), escape = FALSE)
+                          arrange(desc(date)) %>% 
+                          rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"), escape = FALSE)
         } else {
           DT::datatable(data = dataset %>% 
                           filter(lang==input$language) %>% 
                           filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$selectedHashtag, set = x)))%>% 
                           filter(stringr::str_detect(string = clean_text, pattern = gsub(":.*","",isolate(input$selected_word)))) %>% 
                           select(screen_name, date, text, Link, GroupShort) %>% 
-                          arrange(desc(date)), escape = FALSE)
+                          arrange(desc(date))%>% 
+                          rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"), escape = FALSE)
         }
         
       } else {
@@ -227,18 +229,21 @@ shinyServer(function(input, output, session) {
           DT::datatable(data = dataset %>% 
                           filter(lang==input$language) %>%
                           select(screen_name, date, text, Link, GroupShort) %>% 
-                          arrange(desc(date)), escape = FALSE)
+                          arrange(desc(date))%>% 
+                          rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"), escape = FALSE)
         } else if(input$selectedHashtag=="All tweets") {
           DT::datatable(data = dataset %>% 
                           filter(lang==input$language) %>%
                           select(screen_name, date, text, Link, GroupShort) %>% 
-                          arrange(desc(date)), escape = FALSE)
+                          arrange(desc(date))%>% 
+                          rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"), escape = FALSE)
         } else {
           DT::datatable(data = dataset %>% 
                           filter(lang==input$language) %>%
                           filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$selectedHashtag, set = x))) %>% 
                           select(screen_name, date, text, Link, GroupShort) %>% 
-                          arrange(desc(date)), escape = FALSE)
+                          arrange(desc(date))%>% 
+                          rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"), escape = FALSE)
         }
         
       }
@@ -247,13 +252,13 @@ shinyServer(function(input, output, session) {
   ### InfoBox ####
   
   output$HeaderInfoBox <- renderText({
-    
+
     if (is.null(input$selectedHashtag)) {
       paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>All tweets</i></div>")
     } else if (input$selectedHashtag=="All tweets") {
-      paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>All tweets</i>;",  " selected word: <i>",  gsub(":.*","",input$selected_word), "</i></div>")
+        paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>All tweets</i>;",  " selected word: <i>",  gsub(":.*","",input$selected_word), "</i></div>")
     } else {
-      paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>#", input$selectedHashtag, "</i>;", " selected word: <i>", stringr::str_extract(string = input$selected_word, pattern = regex(pattern = "[[:alnum:]]+")), "</i></div>")
+      paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>#", input$selectedHashtag, "</i>;", " selected word: <i>", gsub(":.*","",input$selected_word), "</i></div>")
     }
     
   })
@@ -370,9 +375,8 @@ shinyServer(function(input, output, session) {
     }
     
   })
+  
 
-  
-  
 })
 
 

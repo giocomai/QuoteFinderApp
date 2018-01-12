@@ -23,8 +23,6 @@ blues <- bluesFunc(5)
 point <- scales::format_format(big.mark = ".", decimal.mark = ",", scientific = FALSE)
 
 
-
-
 ## function to give wordcloud2 click interactivity
 ## from https://github.com/Lchiffon/wordcloud2/issues/25
 wc2ClickedWord = function(cloudOutputId, inputId) {
@@ -35,3 +33,4 @@ wc2ClickedWord = function(cloudOutputId, inputId) {
     "});"
   ))
 }
+
