@@ -255,10 +255,12 @@ shinyServer(function(input, output, session) {
 
     if (is.null(input$selectedHashtag)) {
       paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>All tweets</i></div>")
-    } else if (input$selectedHashtag=="All tweets") {
-        paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>All tweets</i>;",  " selected word: <i>",  gsub(":.*","",input$selected_word), "</i></div>")
+    # } else if (input$selectedHashtag=="All tweets") {
+    #     paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>All tweets</i>;",  " selected word: <i>",  gsub(":.*","",input$selected_word), "</i></div>")
     } else {
-      paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>#", input$selectedHashtag, "</i>;", " selected word: <i>", gsub(":.*","",input$selected_word), "</i></div>")
+      paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>#", input$selectedHashtag, "</i>;",
+             #" selected word: <i>", gsub(":.*","",input$selected_word), 
+             "</i></div>")
     }
     
   })

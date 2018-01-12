@@ -28,8 +28,9 @@ dashboardPage(
                                                  max = 1000L,
                                                  value = 200L,
                                                  sep = "."
-                              ), 
-                              HTML("<b>Tip</b>: by clicking on a term in the wordcloud, only tweets including it are shown in the table below.")
+                              )
+                              # , 
+                              # HTML("<b>Tip</b>: by clicking on a term in the wordcloud, only tweets including it are shown in the table below.")
                      ),
                      tabPanel("Classic wordcloud",
                               plotOutput(outputId = "wordcloud"))
@@ -48,12 +49,15 @@ dashboardPage(
                                         label = "Select date range",
                                         start = min(dataset$date), end = max(dataset$date)
                   )
-                ),
-                
+                )
+                ,
+
                 shiny::selectInput(inputId = "language",
                                    label = "Filter tweets by language",
-                                   choices = lang,
-                                   selected = "en")),
+                                   # choices = lang,
+                                   choices = list("en"),
+                                   selected = "en")
+                ),
               
               #### Box 3: Wordcloud filters ####
               
@@ -64,13 +68,14 @@ dashboardPage(
                          shiny::radioButtons(inputId = "sentimentL",
                                              label = "Type of wordcloud",
                                              choices = c("Unified",
-                                                         "Sentiment"))),
-                tabPanel("By EP group",
-                         shiny::checkboxGroupInput(inputId = "EPgroup",
-                                                   label = "Choose group",
-                                                   choices = EPGroupShort, 
-                                                   selected = c("EPP", "S&D"))
-                )
+                                                         "Sentiment")))
+                # ,
+                # tabPanel("By EP group",
+                #          shiny::checkboxGroupInput(inputId = "EPgroup",
+                #                                    label = "Choose group",
+                #                                    choices = EPGroupShort, 
+                #                                    selected = c("EPP", "S&D"))
+                #)
               ),
               
               #### Box 4: infobox ####
