@@ -29,11 +29,11 @@ shinyServer(function(input, output, session) {
   
   observe({
     if (input$dateRangeRadio=="Last week") {
-      startDate <<- Sys.Date()-7
+      startDate <- Sys.Date()-7
     } else if (input$dateRangeRadio=="Last month") {
-      startDate <<- Sys.Date()-31
+      startDate <- Sys.Date()-31
     } else if (input$dateRangeRadio=="Last three months") {
-      startDate <<- Sys.Date()-91
+      startDate <- Sys.Date()-91
     }
     
     if (input$dateRangeRadio=="Custom range") {
@@ -115,12 +115,27 @@ shinyServer(function(input, output, session) {
   #### Wordcloud 2 ####
   
   output$wordcloud2 <- renderWordcloud2({
+    
+    if (input$dateRangeRadio=="Last week") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-7)
+    } else if (input$dateRangeRadio=="Last month") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-31)
+    } else if (input$dateRangeRadio=="Last three months") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-91)
+    } else {
+      dataset <- dataset %>%
+        filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) 
+    }
+    
     if (is.null(input$selectedHashtag)==FALSE) {
       if (input$selectedHashtag=="All tweets") {
-        temp <- dataset %>% 
+        dataset <- dataset %>% 
           filter(lang==input$language)
       } else {
-        temp <- dataset %>% 
+        dataset <- dataset %>% 
           filter(lang==input$language) %>% 
           filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$selectedHashtag, set = x))) 
       }
@@ -128,7 +143,7 @@ shinyServer(function(input, output, session) {
       ##### Wordcloud2 sentiment or unified #####
       
       if (input$sentimentL=="Sentiment") {
-        temp <- temp %>% 
+        dataset <- dataset %>% 
           select(clean_text) %>% 
           unnest_tokens(input = clean_text, output = word) %>% 
           anti_join(stop_words, by = "word")  %>% 
@@ -139,11 +154,10 @@ shinyServer(function(input, output, session) {
                                   true = "#F8766D",
                                   false = "#00BFC4")) %>%
           select(-sentiment)
-        
-          colour <- temp$colour
+          colour <- dataset$colour
         
       } else {
-        temp <- temp %>%
+        dataset <- dataset %>%
           select(clean_text) %>% 
           unnest_tokens(input = clean_text, output = word) %>% 
           anti_join(stop_words, by = "word")  %>% 
@@ -151,7 +165,7 @@ shinyServer(function(input, output, session) {
           top_n(n = input$MaxWords, wt = n)
         
         # customise output color, gradients of blue by frequency
-        colour <- temp %>% 
+        colour <- dataset %>% 
           mutate(colour = case_when(
             n <= quantile(n)[1] ~ blues[1],
             n > quantile(n)[1]& n<=quantile(n)[2] ~ blues[2],
@@ -162,7 +176,7 @@ shinyServer(function(input, output, session) {
         
       }
       
-      temp %>% 
+      dataset %>% 
         wordcloud2(size = 0.5, color = colour)
     }
   })
@@ -176,18 +190,31 @@ shinyServer(function(input, output, session) {
     input$dateRangeRadio
     input$selectedHashtag
     
+    if (input$dateRangeRadio=="Last week") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-7)
+    } else if (input$dateRangeRadio=="Last month") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-31)
+    } else if (input$dateRangeRadio=="Last three months") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-91)
+    } else {
+      dataset <- dataset %>%
+        filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) 
+    }
+    
+    
     
       if (is.null(input$selected_word)==FALSE) {
         if(input$selectedHashtag=="All tweets") {
           DT::datatable(data = dataset %>% 
-                          filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) %>% 
                           filter(lang==input$language) %>% 
-                          filter(stringr::str_detect(string = clean_text, pattern = gsub(":.*","",isolate(input$selected_word)))) %>% 
+                          filter(stringr::str_detect(string = clean_text, pattern = stringr::fixed(gsub(":.*","",isolate(input$selected_word)), ignore_case = TRUE))) %>% 
                           select(screen_name, date, text, Link, GroupShort) %>% 
                           arrange(desc(date)), escape = FALSE)
         } else {
           DT::datatable(data = dataset %>% 
-                          filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) %>% 
                           filter(lang==input$language) %>% 
                           filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$selectedHashtag, set = x)))%>% 
                           filter(stringr::str_detect(string = clean_text, pattern = gsub(":.*","",isolate(input$selected_word)))) %>% 
@@ -221,11 +248,10 @@ shinyServer(function(input, output, session) {
   
   output$HeaderInfoBox <- renderText({
     
-    
     if (is.null(input$selectedHashtag)) {
       paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>All tweets</i></div>")
     } else if (input$selectedHashtag=="All tweets") {
-      paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>All tweets</i>;",  " selected word: <i>", stringr::str_extract(string = input$selected_word, pattern = regex(pattern = "[[:alnum:]]+")), "</i></div>")
+      paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>All tweets</i>;",  " selected word: <i>",  gsub(":.*","",input$selected_word), "</i></div>")
     } else {
       paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>#", input$selectedHashtag, "</i>;", " selected word: <i>", stringr::str_extract(string = input$selected_word, pattern = regex(pattern = "[[:alnum:]]+")), "</i></div>")
     }
@@ -237,6 +263,25 @@ shinyServer(function(input, output, session) {
     input$dateRange
     input$dateRangeRadio
     input$selectedHashtag
+    input$selected_word
+    
+    if (input$dateRangeRadio=="Last week") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-7)
+    } else if (input$dateRangeRadio=="Last month") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-31)
+    } else if (input$dateRangeRadio=="Last three months") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-91)
+    } else {
+      dataset <- dataset %>%
+        filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) 
+    }
+    
+    if (is.null(input$selected_word)==FALSE) {
+      dataset <- dataset %>% filter(stringr::str_detect(string = clean_text, pattern = stringr::fixed(gsub(":.*","",input$selected_word), ignore_case = TRUE)))
+    }
     
     if (is.null(input$selectedHashtag)) {
       filteredTweetsNr <- nrow(dataset %>%
@@ -268,6 +313,36 @@ shinyServer(function(input, output, session) {
     # reload if dateRange is changed
     input$dateRange
     input$dateRangeRadio
+    input$selected_word
+    input$selectedHashtag
+    
+    dataset <- dataset %>% 
+      filter(lang==input$language)
+    
+    if (input$dateRangeRadio=="Last week") {
+      dataset <-  dataset %>% 
+        filter(date>=Sys.Date()-7)
+    } else if (input$dateRangeRadio=="Last month") {
+      dataset <-  dataset %>% 
+        filter(date>=Sys.Date()-31)
+    } else if (input$dateRangeRadio=="Last three months") {
+      dataset <-  dataset %>% 
+        filter(date>=Sys.Date()-91)
+    } else {
+      dataset <- dataset %>%
+        filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) 
+    }
+    
+    if (is.null(input$selected_word)==FALSE) {
+      dataset <- dataset %>% filter(stringr::str_detect(string = clean_text, pattern = stringr::fixed(gsub(":.*","",input$selected_word), ignore_case = TRUE)))
+    }
+
+    if (is.null(input$selectedHashtag)==FALSE) {
+      if (input$selectedHashtag!="All tweets") {
+        dataset <- dataset %>% filter(purrr::map_lgl(.x = hashtags,
+                                                     .f = function (x) is.element(el = input$selectedHashtag, set = x)))
+      }
+    }
     
     infoBox(title = "by",
             value = paste(length(unique(dataset$screen_name)), "MEPs"),
@@ -279,9 +354,20 @@ shinyServer(function(input, output, session) {
     # reload if dateRange is changed
     input$dateRange
     input$dateRangeRadio
-    
-    infoBox(title = "posted in", value = paste(max(dataset$date)-min(dataset$date), "days"),
-            icon = icon("calendar"), color = "blue", fill = FALSE)
+
+    if (input$dateRangeRadio=="Last week") {
+      infoBox(title = "posted in", value = paste(7, "days"),
+              icon = icon("calendar"), color = "blue", fill = FALSE)
+    } else if (input$dateRangeRadio=="Last month") {
+      infoBox(title = "posted in", value = paste(31, "days"),
+              icon = icon("calendar"), color = "blue", fill = FALSE)
+    } else if (input$dateRangeRadio=="Last three months") {
+      infoBox(title = "posted in", value = paste(91, "days"),
+              icon = icon("calendar"), color = "blue", fill = FALSE)
+    } else {
+      infoBox(title = "posted in", value = paste(as.Date(input$dateRange[2])-as.Date(input$dateRange[1]), "days"),
+              icon = icon("calendar"), color = "blue", fill = FALSE)
+    }
     
   })
 
