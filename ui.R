@@ -54,8 +54,8 @@ dashboardPage(
 
                 shiny::selectInput(inputId = "language",
                                    label = "Filter tweets by language",
-                                   # choices = lang,
-                                   choices = list("en"),
+                                   choices = lang,
+                                #  choices = list("en"),
                                    selected = "en")
                 ),
               
