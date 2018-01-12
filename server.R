@@ -17,7 +17,6 @@ shinyServer(function(input, output, session) {
                                       hashtagsList[[input$language]]))
   })
   
-  
   output$MaxWords_UI <- renderUI({
     shiny::sliderInput(inputId = "MaxWords",
                           label = "Maximum number of words in the wordcloud",
@@ -125,24 +124,44 @@ shinyServer(function(input, output, session) {
           filter(lang==input$language) %>% 
           filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$selectedHashtag, set = x))) 
       }
-      temp <- temp %>%
-        select(clean_text) %>% 
-        unnest_tokens(input = clean_text, output = word) %>% 
-        anti_join(stop_words, by = "word")  %>% 
-        count(word, sort = TRUE)
       
+      ##### Wordcloud2 sentiment or unified #####
       
-      temp <- temp %>%
-        top_n(n = input$MaxWords, wt = n)
-      # customise output color, gradients of blue by frequency
-      colour <- temp %>% 
-        mutate(colour = case_when(
-          n <= quantile(n)[1] ~ blues[1],
-          n > quantile(n)[1]& n<=quantile(n)[2] ~ blues[2],
-          n > quantile(n)[2]& n<=quantile(n)[3] ~ blues[3],
-          n > quantile(n)[3]& n<=quantile(n)[4] ~ blues[4],
-          n > quantile(n)[4]& n<=quantile(n)[5] ~ blues[4]
-        )) %>% pull(colour)
+      if (input$sentimentL=="Sentiment") {
+        temp <- temp %>% 
+          select(clean_text) %>% 
+          unnest_tokens(input = clean_text, output = word) %>% 
+          anti_join(stop_words, by = "word")  %>% 
+          inner_join(get_sentiments("bing"), by = "word") %>%
+          count(word, sentiment, sort = TRUE) %>% 
+          top_n(n = input$MaxWords, wt = n) %>% 
+          mutate(colour = if_else(condition = sentiment=="negative",
+                                  true = "#F8766D",
+                                  false = "#00BFC4")) %>%
+          select(-sentiment)
+        
+          colour <- temp$colour
+        
+      } else {
+        temp <- temp %>%
+          select(clean_text) %>% 
+          unnest_tokens(input = clean_text, output = word) %>% 
+          anti_join(stop_words, by = "word")  %>% 
+          count(word, sort = TRUE) %>%
+          top_n(n = input$MaxWords, wt = n)
+        
+        # customise output color, gradients of blue by frequency
+        colour <- temp %>% 
+          mutate(colour = case_when(
+            n <= quantile(n)[1] ~ blues[1],
+            n > quantile(n)[1]& n<=quantile(n)[2] ~ blues[2],
+            n > quantile(n)[2]& n<=quantile(n)[3] ~ blues[3],
+            n > quantile(n)[3]& n<=quantile(n)[4] ~ blues[4],
+            n > quantile(n)[4]& n<=quantile(n)[5] ~ blues[4]
+          )) %>% pull(colour)
+        
+      }
+      
       temp %>% 
         wordcloud2(size = 0.5, color = colour)
     }
