@@ -162,7 +162,7 @@ shinyServer(function(input, output, session) {
                ~ .) %>% 
           inner_join(get_sentiments("bing"), by = "word") %>%
           count(word, sentiment, sort = TRUE) %>% 
-          top_n(n = input$MaxWords, wt = n) %>% 
+          slice(1:input$MaxWords) %>% 
           mutate(colour = if_else(condition = sentiment=="negative",
                                   true = "#F8766D",
                                   false = "#00BFC4")) %>%
@@ -178,7 +178,7 @@ shinyServer(function(input, output, session) {
                  anti_join(., data_frame(word = stopwords::stopwords(language = input$language, source = "stopwords-iso")), by = "word"),
                ~ .) %>% 
           count(word, sort = TRUE) %>%
-          top_n(n = input$MaxWords, wt = n)
+          slice(1:input$MaxWords) 
         
         # customise output color, gradients of blue by frequency
         colour <- dataset %>% 
@@ -192,8 +192,12 @@ shinyServer(function(input, output, session) {
         
       }
       
+      # try to deal with changing size of graph when little difference between values
+      sizeVar <- as.numeric(quantile(dataset$n)[5]/quantile(dataset$n)[1]/nrow(dataset)*5)
+      #sizeVar <- as.numeric(quantile(dataset$n)[5]/quantile(dataset$n)[1]/log(nrow(dataset))/10)
+      
       dataset %>% 
-        wordcloud2(size = 0.5, color = colour)
+        wordcloud2(size = sizeVar, color = colour)
     }
   })
   
