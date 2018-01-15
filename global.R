@@ -5,6 +5,7 @@ library(wordcloud2)
 library(stringr)
 library(tidyverse)
 library(reshape2)
+library(stopwords)
 
 dataset <- readRDS(file = file.path("data", "dataset.rds"))
 hashtagsList <- readRDS(file = file.path("data", "hashtags.rds"))

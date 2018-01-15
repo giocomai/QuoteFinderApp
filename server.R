@@ -63,14 +63,21 @@ shinyServer(function(input, output, session) {
               filter(lang==input$language) %>% 
               select(clean_text) %>% 
               unnest_tokens(input = clean_text, output = word) %>% 
-              anti_join(stop_words, by = "word") 
+              # remove stopwords, if list for the relevant language is available, otherwise do nothing
+              when(is.element(el = input$language, set = stopwords_getlanguages(source = "stopwords-iso")) ~
+                     anti_join(., data_frame(word = stopwords::stopwords(language = input$language, source = "stopwords-iso")), by = "word"),
+                   ~ .)
+              
           } else {
             temp <- dataset %>% 
               filter(lang==input$language) %>% 
               filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$selectedHashtag, set = x))) %>%
               select(clean_text) %>% 
               unnest_tokens(input = clean_text, output = word) %>% 
-              anti_join(stop_words, by = "word") 
+              # remove stopwords, if list for the relevant language is available, otherwise do nothing
+              when(is.element(el = input$language, set = stopwords_getlanguages(source = "stopwords-iso")) ~
+                     anti_join(., data_frame(word = stopwords::stopwords(language = input$language, source = "stopwords-iso")), by = "word"),
+                   ~ .)
           }
           if (input$sentimentL=="Sentiment") {
             par(mar = rep(0, 4))
@@ -97,7 +104,10 @@ shinyServer(function(input, output, session) {
           filter(stringr::str_detect(string = GroupShort, pattern = paste(input$EPgroup, collapse = "|"))) %>%
           select(clean_text, NATIONALITY, GroupShort) %>% 
           unnest_tokens(input = clean_text, output = word) %>% 
-          anti_join(stop_words, by = "word") 
+          # remove stopwords, if list for the relevant language is available, otherwise do nothing
+          when(is.element(el = input$language, set = stopwords_getlanguages(source = "stopwords-iso")) ~
+                 anti_join(., data_frame(word = stopwords::stopwords(language = input$language, source = "stopwords-iso")), by = "word"),
+               ~ .)
         if (length(input$EPgroup)==1) {
           
         } else if (length(input$EPgroup)>1) {
@@ -146,7 +156,10 @@ shinyServer(function(input, output, session) {
         dataset <- dataset %>% 
           select(clean_text) %>% 
           unnest_tokens(input = clean_text, output = word) %>% 
-          anti_join(stop_words, by = "word")  %>% 
+          # remove stopwords, if list for the relevant language is available, otherwise do nothing
+          when(is.element(el = input$language, set = stopwords_getlanguages(source = "stopwords-iso")) ~
+                 anti_join(., data_frame(word = stopwords::stopwords(language = input$language, source = "stopwords-iso")), by = "word"),
+               ~ .) %>% 
           inner_join(get_sentiments("bing"), by = "word") %>%
           count(word, sentiment, sort = TRUE) %>% 
           top_n(n = input$MaxWords, wt = n) %>% 
@@ -160,7 +173,10 @@ shinyServer(function(input, output, session) {
         dataset <- dataset %>%
           select(clean_text) %>% 
           unnest_tokens(input = clean_text, output = word) %>% 
-          anti_join(stop_words, by = "word")  %>% 
+          # remove stopwords, if list for the relevant language is available, otherwise do nothing
+          when(is.element(el = input$language, set = stopwords_getlanguages(source = "stopwords-iso")) ~
+                 anti_join(., data_frame(word = stopwords::stopwords(language = input$language, source = "stopwords-iso")), by = "word"),
+               ~ .) %>% 
           count(word, sort = TRUE) %>%
           top_n(n = input$MaxWords, wt = n)
         
