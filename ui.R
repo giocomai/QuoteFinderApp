@@ -8,7 +8,8 @@ dashboardPage(
     shiny::HTML("<hr><div class='col-sm-12'><p><b>The QuoteFinder lets you explore</b></p></div>"),
     infoBox(title = "tweets", value = point(nrow(dataset)), icon = icon("twitter"), width = 12, color = "blue", fill = TRUE),
     infoBox(title = "by", value = paste(length(unique(dataset$screen_name)), "MEPs"), icon = icon("users"), width = 12, color = "blue", fill = TRUE)),
-    infoBox(title = "posted since", value = min(dataset$date), icon = icon("calendar"), width = 12, color = "blue", fill = TRUE)
+    infoBox(title = "posted since", value = min(dataset$date), icon = icon("calendar"), width = 12, color = "blue", fill = TRUE),
+    disable = TRUE
   ),
   dashboardBody(
     wc2ClickedWord(cloudOutputId = "wordcloud2", inputId = "selected_word"),
