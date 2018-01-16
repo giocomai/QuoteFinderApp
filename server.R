@@ -250,20 +250,23 @@ shinyServer(function(input, output, session) {
                           filter(lang==input$language) %>%
                           select(screen_name, date, text, Link, GroupShort) %>% 
                           arrange(desc(date))%>% 
-                          rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"), escape = FALSE)
+                          rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"),
+                        escape = FALSE, options = list(pageLength = 5, lengthMenu = c(3, 5, 10, 15, 20)), rownames=FALSE)
         } else if(input$selectedHashtag=="All tweets") {
           DT::datatable(data = dataset %>% 
                           filter(lang==input$language) %>%
                           select(screen_name, date, text, Link, GroupShort) %>% 
                           arrange(desc(date))%>% 
-                          rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"), escape = FALSE)
+                          rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"),
+                        escape = FALSE, options = list(pageLength = 5, lengthMenu = c(3, 5, 10, 15, 20)), rownames=FALSE)
         } else {
           DT::datatable(data = dataset %>% 
                           filter(lang==input$language) %>%
                           filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$selectedHashtag, set = x))) %>% 
                           select(screen_name, date, text, Link, GroupShort) %>% 
                           arrange(desc(date))%>% 
-                          rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"), escape = FALSE)
+                          rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"),
+                        escape = FALSE, options = list(pageLength = 5, lengthMenu = c(3, 5, 10, 15, 20)), rownames=FALSE)
         }
         
       }
