@@ -38,7 +38,7 @@ shinyServer(function(input, output, session) {
     
     if (input$dateRangeRadio=="Custom range") {
       updateDateRangeInput(session, "dateRange",
-                           start = startDate,
+                           start = min(dataset$date),
                            end = Sys.Date())
     }
   })
@@ -82,7 +82,10 @@ shinyServer(function(input, output, session) {
           if (input$sentimentL=="Sentiment") {
             par(mar = rep(0, 4))
             temp %>% 
-              inner_join(get_sentiments("bing"), by = "word") %>%
+              # nrc sentiment, removing words that are both positive and negative
+              inner_join(y = syuzhet::get_sentiment_dictionary(dictionary = "nrc",
+                                                               lang = langTable %>% filter(lang==input$language) %>% pull(English) %>% tolower()) %>%
+                           filter(sentiment=="negative"|sentiment=="positive") %>% add_count(word) %>% filter(n==1) %>% select(-n), by = "word") %>%
               count(word, sentiment, sort = TRUE) %>%
               acast(word ~ sentiment, value.var = "n", fill = 0) %>%
               comparison.cloud(colors = c("#F8766D", "#00BFC4"),
@@ -153,14 +156,26 @@ shinyServer(function(input, output, session) {
       ##### Wordcloud2 sentiment or unified #####
       
       if (input$sentimentL=="Sentiment") {
+        if (input$language=="en") {
+          sentimentDictionary <- tidytext::get_sentiments("bing")
+        } else {
+          sentimentDictionary <- syuzhet::get_sentiment_dictionary(dictionary = "nrc",
+                                                                   lang = langTable %>% filter(lang==input$language) %>% pull(English) %>% tolower()) %>%
+            filter(sentiment=="negative"|sentiment=="positive") %>% add_count(word) %>% filter(n==1) %>% select(word, sentiment)
+        }
+        
+        
         dataset <- dataset %>% 
           select(clean_text) %>% 
           unnest_tokens(input = clean_text, output = word) %>% 
           # remove stopwords, if list for the relevant language is available, otherwise do nothing
-          when(is.element(el = input$language, set = stopwords::stopwords_getlanguages(source = "stopwords-iso")) ~
+          when(is.element(el = input$language, set = stopwords::stopwords_getlanguages(source = "snowball")) ~
+                 anti_join(., data_frame(word = stopwords::stopwords(language = input$language, source = "snowball")), by = "word"),
+               is.element(el = input$language, set = stopwords::stopwords_getlanguages(source = "stopwords-iso")) ~
                  anti_join(., data_frame(word = stopwords::stopwords(language = input$language, source = "stopwords-iso")), by = "word"),
                ~ .) %>% 
-          inner_join(get_sentiments("bing"), by = "word") %>%
+          # nrc sentiment, removing words that are both positive and negative
+          inner_join(y = sentimentDictionary, by = "word") %>%
           count(word, sentiment, sort = TRUE) %>% 
           slice(1:input$MaxWords) %>% 
           mutate(colour = if_else(condition = sentiment=="negative",
@@ -193,7 +208,12 @@ shinyServer(function(input, output, session) {
       }
       
       # try to deal with changing size of graph when little difference between values
-      sizeVar <- as.numeric(quantile(dataset$n)[5]/quantile(dataset$n)[1]/nrow(dataset)*5.5)
+      if (input$sentimentL=="Sentiment") {
+        sizeVar <- as.numeric(quantile(dataset$n)[5]/quantile(dataset$n)[1]/nrow(dataset)*4)
+      } else {
+        sizeVar <- as.numeric(quantile(dataset$n)[5]/quantile(dataset$n)[1]/nrow(dataset)*5)
+      }
+      
       #sizeVar <- as.numeric(quantile(dataset$n)[5]/quantile(dataset$n)[1]/log(nrow(dataset))/10)
       
       dataset %>% 
