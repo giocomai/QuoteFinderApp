@@ -209,7 +209,7 @@ shinyServer(function(input, output, session) {
       
       # try to deal with changing size of graph when little difference between values
       if (input$sentimentL=="Sentiment") {
-        sizeVar <- as.numeric(quantile(dataset$n)[5]/quantile(dataset$n)[1]/nrow(dataset)*4)
+        sizeVar <- as.numeric(quantile(dataset$n)[5]/quantile(dataset$n)[1]/nrow(dataset)*3.5)
       } else {
         sizeVar <- as.numeric(quantile(dataset$n)[5]/quantile(dataset$n)[1]/nrow(dataset)*5)
       }
