@@ -71,7 +71,7 @@ shinyServer(function(input, output, session) {
           } else {
             temp <- dataset %>% 
               filter(lang==input$language) %>% 
-              filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$selectedHashtag, set = x))) %>%
+              filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = tolower(input$selectedHashtag), set = tolower(x)))) %>%
               select(clean_text) %>% 
               unnest_tokens(input = clean_text, output = word) %>% 
               # remove stopwords, if list for the relevant language is available, otherwise do nothing
@@ -147,7 +147,7 @@ shinyServer(function(input, output, session) {
       } else {
         dataset <- dataset %>% 
           filter(lang==input$language) %>% 
-          filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$selectedHashtag, set = x))) 
+          filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = tolower(input$selectedHashtag), set = tolower(x)))) 
       }
       
       ##### Wordcloud2 sentiment or unified #####
@@ -193,7 +193,7 @@ shinyServer(function(input, output, session) {
       }
       
       # try to deal with changing size of graph when little difference between values
-      sizeVar <- as.numeric(quantile(dataset$n)[5]/quantile(dataset$n)[1]/nrow(dataset)*5)
+      sizeVar <- as.numeric(quantile(dataset$n)[5]/quantile(dataset$n)[1]/nrow(dataset)*5.5)
       #sizeVar <- as.numeric(quantile(dataset$n)[5]/quantile(dataset$n)[1]/log(nrow(dataset))/10)
       
       dataset %>% 
@@ -237,7 +237,7 @@ shinyServer(function(input, output, session) {
         } else {
           DT::datatable(data = dataset %>% 
                           filter(lang==input$language) %>% 
-                          filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$selectedHashtag, set = x)))%>% 
+                          filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = tolower(input$selectedHashtag), set = tolower(x))))%>% 
                           filter(stringr::str_detect(string = clean_text, pattern = gsub(":.*","",isolate(input$selected_word)))) %>% 
                           select(screen_name, date, text, Link, GroupShort) %>% 
                           arrange(desc(date))%>% 
@@ -402,6 +402,3 @@ shinyServer(function(input, output, session) {
   
 
 })
-
-
-
