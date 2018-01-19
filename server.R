@@ -53,6 +53,7 @@ shinyServer(function(input, output, session) {
       input$dateRange
       input$dateRangeRadio
       input$selectedHashtag
+      
 
       # If tab is "By hashtag"
       if (input$wordcloud_filters=="By hashtag") {
@@ -80,6 +81,8 @@ shinyServer(function(input, output, session) {
                    ~ .)
           }
           if (input$sentimentL=="Sentiment") {
+            # for log
+            message(paste(Sys.time(), "WordcloudSentimentCreated", input$language, sep = "-"))
             par(mar = rep(0, 4))
             temp %>% 
               # nrc sentiment, removing words that are both positive and negative
@@ -91,6 +94,8 @@ shinyServer(function(input, output, session) {
               comparison.cloud(colors = c("#F8766D", "#00BFC4"),
                                max.words = 100, scale = c(3, 1), family = "Carlito", font = 1)
           } else {
+            # for log
+            message(paste(Sys.time(), "WordcloudUnifiedCreated", input$language, sep = "-"))
             par(mar = rep(0, 4))
             temp %>% 
               count(word) %>% 
@@ -208,10 +213,13 @@ shinyServer(function(input, output, session) {
       }
       
       # try to deal with changing size of graph when little difference between values
+      # add for log
       if (input$sentimentL=="Sentiment") {
         sizeVar <- as.numeric(quantile(dataset$n)[5]/quantile(dataset$n)[1]/nrow(dataset)*3.5)
+        message(paste(Sys.time(), "Wordcloud2SentimentCreated", input$language, sep = "-"))
       } else {
         sizeVar <- as.numeric(quantile(dataset$n)[5]/quantile(dataset$n)[1]/nrow(dataset)*5)
+        message(paste(Sys.time(), "Wordcloud2UnifiedCreated", input$language, sep = "-"))
       }
       
       #sizeVar <- as.numeric(quantile(dataset$n)[5]/quantile(dataset$n)[1]/log(nrow(dataset))/10)
