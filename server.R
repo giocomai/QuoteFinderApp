@@ -246,25 +246,25 @@ shinyServer(function(input, output, session) {
     
     
     
-      if (is.null(input$selected_word)==FALSE) {
-        if(input$selectedHashtag=="All tweets") {
-          DT::datatable(data = dataset %>% 
-                          filter(lang==input$language) %>% 
-                          filter(stringr::str_detect(string = clean_text, pattern = stringr::fixed(gsub(":.*","",isolate(input$selected_word)), ignore_case = TRUE))) %>% 
-                          select(screen_name, date, text, Link, GroupShort) %>% 
-                          arrange(desc(date)) %>% 
-                          rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"), escape = FALSE)
-        } else {
-          DT::datatable(data = dataset %>% 
-                          filter(lang==input$language) %>% 
-                          filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = tolower(input$selectedHashtag), set = tolower(x))))%>% 
-                          filter(stringr::str_detect(string = clean_text, pattern = gsub(":.*","",isolate(input$selected_word)))) %>% 
-                          select(screen_name, date, text, Link, GroupShort) %>% 
-                          arrange(desc(date))%>% 
-                          rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"), escape = FALSE)
-        }
-        
-      } else {
+      # if (is.null(input$selected_word)==FALSE) {
+      #   if(input$selectedHashtag=="All tweets") {
+      #     DT::datatable(data = dataset %>% 
+      #                     filter(lang==input$language) %>% 
+      #                     filter(stringr::str_detect(string = clean_text, pattern = stringr::fixed(gsub(":.*","",isolate(input$selected_word)), ignore_case = TRUE))) %>% 
+      #                     select(screen_name, date, text, Link, GroupShort) %>% 
+      #                     arrange(desc(date)) %>% 
+      #                     rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"), escape = FALSE)
+      #   } else {
+      #     DT::datatable(data = dataset %>% 
+      #                     filter(lang==input$language) %>% 
+      #                     filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = tolower(input$selectedHashtag), set = tolower(x))))%>% 
+      #                     filter(stringr::str_detect(string = clean_text, pattern = gsub(":.*","",isolate(input$selected_word)))) %>% 
+      #                     select(screen_name, date, text, Link, GroupShort) %>% 
+      #                     arrange(desc(date))%>% 
+      #                     rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"), escape = FALSE)
+      #   }
+      #   
+      # } else {
         if(is.null(input$selectedHashtag)){
           DT::datatable(data = dataset %>% 
                           filter(lang==input$language) %>%
@@ -289,7 +289,7 @@ shinyServer(function(input, output, session) {
                         escape = FALSE, options = list(pageLength = 5, lengthMenu = c(3, 5, 10, 15, 20)), rownames=FALSE)
         }
         
-      }
+    #  }
   })
   
   ### InfoBox ####
@@ -315,7 +315,7 @@ shinyServer(function(input, output, session) {
     input$dateRange
     input$dateRangeRadio
     input$selectedHashtag
-    input$selected_word
+    # input$selected_word
     
     if (input$dateRangeRadio=="Last week") {
       dataset <-  dataset %>% 
@@ -331,9 +331,9 @@ shinyServer(function(input, output, session) {
         filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) 
     }
     
-    if (is.null(input$selected_word)==FALSE) {
-      dataset <- dataset %>% filter(stringr::str_detect(string = clean_text, pattern = stringr::fixed(gsub(":.*","",input$selected_word), ignore_case = TRUE)))
-    }
+    # if (is.null(input$selected_word)==FALSE) {
+    #   dataset <- dataset %>% filter(stringr::str_detect(string = clean_text, pattern = stringr::fixed(gsub(":.*","",input$selected_word), ignore_case = TRUE)))
+    # }
     
     if (is.null(input$selectedHashtag)) {
       filteredTweetsNr <- nrow(dataset %>%
@@ -365,7 +365,7 @@ shinyServer(function(input, output, session) {
     # reload if dateRange is changed
     input$dateRange
     input$dateRangeRadio
-    input$selected_word
+    #input$selected_word
     input$selectedHashtag
     
     dataset <- dataset %>% 
@@ -385,9 +385,9 @@ shinyServer(function(input, output, session) {
         filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) 
     }
     
-    if (is.null(input$selected_word)==FALSE) {
-      dataset <- dataset %>% filter(stringr::str_detect(string = clean_text, pattern = stringr::fixed(gsub(":.*","",input$selected_word), ignore_case = TRUE)))
-    }
+    # if (is.null(input$selected_word)==FALSE) {
+    #   dataset <- dataset %>% filter(stringr::str_detect(string = clean_text, pattern = stringr::fixed(gsub(":.*","",input$selected_word), ignore_case = TRUE)))
+    # }
 
     if (is.null(input$selectedHashtag)==FALSE) {
       if (input$selectedHashtag!="All tweets") {

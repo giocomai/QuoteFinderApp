@@ -12,7 +12,7 @@ dashboardPage(
     disable = TRUE
   ),
   dashboardBody(
-    wc2ClickedWord(cloudOutputId = "wordcloud2", inputId = "selected_word"),
+  #  wc2ClickedWord(cloudOutputId = "wordcloud2", inputId = "selected_word"),
     
     tabItems(
       
@@ -56,7 +56,6 @@ dashboardPage(
                 shiny::selectInput(inputId = "language",
                                    label = "Filter tweets by language",
                                    choices = lang,
-                                #  choices = list("en"),
                                    selected = "en")
                 ),
               
