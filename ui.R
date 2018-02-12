@@ -63,7 +63,9 @@ dashboardPage(
               
               tabBox(
                 id = "wordcloud_filters",
-                tabPanel("By hashtag",
+                tabPanel("Search and filter",
+                         splitLayout(textInput(inputId = 'term', label = NULL),
+                                     actionButton("go", "Go!"), cellWidths = c("75%", "25%")),
                          uiOutput(outputId = "hashtags_UI"),
                          shiny::radioButtons(inputId = "sentimentL",
                                              label = "Type of wordcloud",
