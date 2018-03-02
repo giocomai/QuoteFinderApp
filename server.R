@@ -41,7 +41,7 @@ shinyServer(function(input, output, session) {
     input$go
     datasetR <- eventReactive(input$go, {
       dataset <- dataset %>%
-        filter(stringr::str_detect(string = text, pattern = input$term))
+        filter(stringr::str_detect(string = text, pattern = stringr::regex(pattern = input$term, ignore_case = TRUE)))
     })
     
     if(input$go!=0) {
@@ -103,7 +103,7 @@ shinyServer(function(input, output, session) {
   output$hashtags_UI <- renderUI({
     shiny::selectizeInput(inputId = "selectedHashtag",
                           label = "Select hashtag",
-                          choices = c(#list("All tweets"),
+                          choices = c(list("All tweets"),
                             currentHashtags()))
   })
   
