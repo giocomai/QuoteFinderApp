@@ -47,9 +47,54 @@ shinyServer(function(input, output, session) {
     if(input$go!=0) {
       dataset <- datasetR()
     }
-
     dataset
   })
+  
+  currentHashtags <- reactive({
+    dataset <- dataset %>% 
+      filter(lang==input$language)
+    
+    if (input$dateRangeRadio=="Last week") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-7)
+    } else if (input$dateRangeRadio=="Last month") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-31)
+    } else if (input$dateRangeRadio=="Last three months") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-91)
+    } else {
+      dataset <- dataset %>%
+        filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) 
+    }
+    
+    currentHashtagsDF <- dataset %>%
+      select(screen_name, hashtags) %>%
+      unnest() %>%
+      na.omit() %>% 
+      group_by(hashtags) %>%
+      add_count(sort = TRUE) %>% 
+      rename(nTotalOrig = n) %>% 
+      mutate(hashtagsLower = tolower(hashtags)) %>% # ignore case, but keep the case of the most frequently found case combination
+      group_by(hashtagsLower) %>%
+      add_tally() %>%
+      ungroup() %>% 
+      rename(nTotal = n) %>% 
+      group_by(hashtags, nTotal) %>% 
+      distinct(screen_name, .keep_all = TRUE) %>% 
+      add_count() %>% 
+      rename(nMepPerHashtag = n) %>% 
+      select(-screen_name) %>% 
+      arrange(desc(nMepPerHashtag), desc(nTotal)) %>% 
+      ungroup() %>% 
+      distinct(hashtagsLower, .keep_all = TRUE) %>% 
+      mutate(hashtagString = paste0("#", hashtags, " (", nMepPerHashtag, " MEPs, ", nTotal, " tweets)"))
+    currentHashtagsList <- as.list(currentHashtagsDF$hashtags)
+    names(currentHashtagsList) <- currentHashtagsDF$hashtagString
+    currentHashtagsList
+  })
+  
+    
   
 
   
@@ -58,8 +103,8 @@ shinyServer(function(input, output, session) {
   output$hashtags_UI <- renderUI({
     shiny::selectizeInput(inputId = "selectedHashtag",
                           label = "Select hashtag",
-                          choices = c(list("All tweets"),
-                                      hashtagsList[[input$language]]))
+                          choices = c(#list("All tweets"),
+                            currentHashtags()))
   })
   
   output$MaxWords_UI <- renderUI({
