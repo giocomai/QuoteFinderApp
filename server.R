@@ -35,7 +35,7 @@ shinyServer(function(input, output, session) {
      
     } else {
       dataset <- dataset %>% 
-        filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = input$selectedHashtag, set = x)))
+        filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = tolower(input$selectedHashtag), set = tolower(x))))
     }
     
     input$go
