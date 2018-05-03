@@ -1,6 +1,7 @@
 library(shiny)
 library(shinydashboard)
 
+function(request) {
 dashboardPage(
   dashboardHeader(title = "EdjNet QuoteFinder"),
   dashboardSidebar(sidebarMenu(
@@ -78,7 +79,9 @@ dashboardPage(
                 #                                    choices = EPGroupShort, 
                 #                                    selected = c("EPP", "S&D"))
                 #)
-              ),
+              ), 
+            box(bookmarkButton(label = "Get direct link with current filters"))
+            ,
               
               #### Box 4: infobox ####
               box(title = NULL,
@@ -95,3 +98,4 @@ dashboardPage(
   )
 )
 
+}

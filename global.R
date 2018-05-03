@@ -38,3 +38,6 @@ wc2ClickedWord = function(cloudOutputId, inputId) {
 langTable <- left_join(x = data_frame(lang = unlist(lang)),
                        y = readRDS(file.path("data", "langCode.rds")) %>%rename(lang = alpha2), by = "lang") %>% 
   mutate(English = stringr::str_extract(string = English, pattern = regex("[[:alnum:]]+")))
+
+# Enable bookmarking
+enableBookmarking(store = "server")
