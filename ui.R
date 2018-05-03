@@ -80,7 +80,7 @@ dashboardPage(
                 #                                    selected = c("EPP", "S&D"))
                 #)
               ), 
-            box(bookmarkButton(label = "Get direct link with current filters"))
+            box(bookmarkButton(label = "Get direct link with current filters enabled"))
             ,
               
               #### Box 4: infobox ####
