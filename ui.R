@@ -71,9 +71,9 @@ dashboardPage(
               
               tabBox(title = "Search and filter",
                 id = "wordcloud_filters",
-                tabPanel("By term",
-                         textInput(inputId = 'term', label = NULL)
-                         # splitLayout(textInput(inputId = 'term', label = NULL),
+                tabPanel("By string",
+                         textInput(inputId = 'string', label = NULL)
+                         # splitLayout(textInput(inputId = 'string', label = NULL),
                          #             #actionButton("filter", "Filter", icon = icon("filter", class = "font-awesome")),
                          #             cellWidths = c("75%", "25%"))
                          )

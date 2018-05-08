@@ -11,7 +11,7 @@ shinyServer(function(input, output, session) {
   #### Reset ####
   
   observeEvent(input$reset, {
-    updateTextInput(session = session, inputId = "term", value = "")
+    updateTextInput(session = session, inputId = "string", value = "")
     updateCheckboxGroupInput(session = session, inputId = "EPgroup", selected = character(0))
   })
   
@@ -45,9 +45,9 @@ shinyServer(function(input, output, session) {
         filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = tolower(input$selectedHashtag), set = tolower(x))))
     }
     
-    if (input$term!="") {
+    if (input$string!="") {
       dataset <- dataset %>%
-        filter(stringr::str_detect(string = text, pattern = stringr::regex(pattern = input$term, ignore_case = TRUE)))
+        filter(stringr::str_detect(string = text, pattern = stringr::regex(pattern = input$string, ignore_case = TRUE)))
       }
     
     if (is.null(input$EPgroup)==FALSE) {
@@ -333,8 +333,9 @@ shinyServer(function(input, output, session) {
                "</i></div>")
     } else {
       paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>#", input$selectedHashtag, "</i>;",
+             if (input$string!="") paste0(" string: <i>", input$string, "</i>;"),
              #" selected word: <i>", gsub(":.*","",input$selected_word), 
-             "</i></div>")
+             "</div>")
     }
     
   })
