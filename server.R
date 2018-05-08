@@ -8,6 +8,13 @@ library(DT)
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
   
+  #### Reset ####
+  
+  observeEvent(input$reset, {
+    updateTextInput(session = session, inputId = "term", value = "")
+    updateCheckboxGroupInput(session = session, inputId = "EPgroup", selected = character(0))
+  })
+  
   #### Reactive ####
   
   currentDataset <- reactive({
