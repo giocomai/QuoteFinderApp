@@ -38,33 +38,19 @@ shinyServer(function(input, output, session) {
         filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = tolower(input$selectedHashtag), set = tolower(x))))
     }
     
-    input$filter
-    datasetR <- eventReactive(input$filter, {
-      if (input$term!="") {
-        dataset <- dataset %>%
-          filter(stringr::str_detect(string = text, pattern = stringr::regex(pattern = input$term, ignore_case = TRUE)))
+    if (input$term!="") {
+      dataset <- dataset %>%
+        filter(stringr::str_detect(string = text, pattern = stringr::regex(pattern = input$term, ignore_case = TRUE)))
       }
-    })
     
-    input$filterByGroup
-    datasetR <- eventReactive(input$filterByGroup, {
-      if (input$term!="") {
-        dataset <- dataset %>%
-          filter(stringr::str_detect(string = text, pattern = stringr::regex(pattern = input$term, ignore_case = TRUE))) %>% 
-          filter(stringr::str_detect(string = GroupShort, pattern = paste(input$EPgroup, collapse = "|")))
-      } else {
+    if (is.null(input$EPgroup)==FALSE) {
       dataset <- dataset %>%
         filter(stringr::str_detect(string = GroupShort, pattern = paste(input$EPgroup, collapse = "|")))
-      }
-    })
-    
-    if(input$filterByGroup!=0|input$filter!=0) {
-      dataset <- datasetR()
     }
     
     dataset
   })
-  
+
   currentHashtags <- reactive({
     dataset <- dataset %>% 
       filter(lang==input$language)

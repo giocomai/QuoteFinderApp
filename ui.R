@@ -33,9 +33,10 @@ dashboardPage(
                               )
                               # , 
                               # HTML("<b>Tip</b>: by clicking on a term in the wordcloud, only tweets including it are shown in the table below.")
-                     ),
-                     tabPanel("Classic wordcloud",
-                              plotOutput(outputId = "wordcloud"))
+                     )
+                     # ,
+                     # tabPanel("Classic wordcloud",
+                     #          plotOutput(outputId = "wordcloud"))
               ),
               
               #### Box 2: Date and language ####
@@ -43,9 +44,9 @@ dashboardPage(
                 shiny::radioButtons(inputId = "dateRangeRadio",
                                     label = "Select date range",
                                     choices = as.list(c("Last week", "Last month", "Last three months", "Custom range")),
-                                    selected = "Last month"),
+                                    selected = "Last month", inline = TRUE),
                 conditionalPanel(
-                  condition = "input.dateRangeRadio == 'Custom range'",
+                  condition = "input.dateRangeRcadio == 'Custom range'",
                   shiny::dateRangeInput(inputId = 'dateRange',
                                         weekstart = 1,
                                         label = "Select date range",
@@ -57,32 +58,40 @@ dashboardPage(
                 shiny::selectInput(inputId = "language",
                                    label = "Filter tweets by language",
                                    choices = lang,
-                                   selected = "en")
+                                   selected = "en"),
+                uiOutput(outputId = "hashtags_UI"),
+                shiny::radioButtons(inputId = "sentimentL",
+                                    label = "Type of wordcloud",
+                                    choices = c("Unified",
+                                                "Sentiment"),
+                                    inline = TRUE)
                 ),
               
               #### Box 3: Wordcloud filters ####
               
-              tabBox(
+              tabBox(title = "Search and filter",
                 id = "wordcloud_filters",
-                tabPanel("Search and filter",
-                         splitLayout(textInput(inputId = 'term', label = NULL),
-                                     actionButton("filter", "Filter"), cellWidths = c("75%", "25%")),
-                         uiOutput(outputId = "hashtags_UI"),
-                         shiny::radioButtons(inputId = "sentimentL",
-                                             label = "Type of wordcloud",
-                                             choices = c("Unified",
-                                                         "Sentiment")))
+                tabPanel("By term",
+                         textInput(inputId = 'term', label = NULL)
+                         # splitLayout(textInput(inputId = 'term', label = NULL),
+                         #             #actionButton("filter", "Filter", icon = icon("filter", class = "font-awesome")),
+                         #             cellWidths = c("75%", "25%"))
+                         )
                 ,
                 tabPanel("By EP group",
                          shiny::checkboxGroupInput(inputId = "EPgroup",
                                                    label = "Choose group",
                                                    choices = EPGroupShort,
-                                                   selected = c("EPP", "S&D")),
-                         actionButton("filterByGroup", "Filter")
+                                                   inline = TRUE)
+                         #,actionButton("filterByGroup", "Filter", icon = icon("filter", class = "font-awesome"))
                          
                 )
               ), 
-            box(bookmarkButton(label = "Get direct link with current filters enabled"))
+            box(actionButton(inputId = "reset",
+                             label = "Reset filters",
+                             icon = icon(name = "recycle", lib = "font-awesome")),
+                bookmarkButton(label = "Get direct link with current filters enabled")
+                )
             ,
               
               #### Box 4: infobox ####
