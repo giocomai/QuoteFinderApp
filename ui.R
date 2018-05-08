@@ -66,19 +66,21 @@ dashboardPage(
                 id = "wordcloud_filters",
                 tabPanel("Search and filter",
                          splitLayout(textInput(inputId = 'term', label = NULL),
-                                     actionButton("go", "Go!"), cellWidths = c("75%", "25%")),
+                                     actionButton("filter", "Filter"), cellWidths = c("75%", "25%")),
                          uiOutput(outputId = "hashtags_UI"),
                          shiny::radioButtons(inputId = "sentimentL",
                                              label = "Type of wordcloud",
                                              choices = c("Unified",
                                                          "Sentiment")))
-                # ,
-                # tabPanel("By EP group",
-                #          shiny::checkboxGroupInput(inputId = "EPgroup",
-                #                                    label = "Choose group",
-                #                                    choices = EPGroupShort, 
-                #                                    selected = c("EPP", "S&D"))
-                #)
+                ,
+                tabPanel("By EP group",
+                         shiny::checkboxGroupInput(inputId = "EPgroup",
+                                                   label = "Choose group",
+                                                   choices = EPGroupShort,
+                                                   selected = c("EPP", "S&D")),
+                         actionButton("filterByGroup", "Filter")
+                         
+                )
               ), 
             box(bookmarkButton(label = "Get direct link with current filters enabled"))
             ,

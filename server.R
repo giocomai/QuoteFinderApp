@@ -38,15 +38,30 @@ shinyServer(function(input, output, session) {
         filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = tolower(input$selectedHashtag), set = tolower(x))))
     }
     
-    input$go
-    datasetR <- eventReactive(input$go, {
-      dataset <- dataset %>%
-        filter(stringr::str_detect(string = text, pattern = stringr::regex(pattern = input$term, ignore_case = TRUE)))
+    input$filter
+    datasetR <- eventReactive(input$filter, {
+      if (input$term!="") {
+        dataset <- dataset %>%
+          filter(stringr::str_detect(string = text, pattern = stringr::regex(pattern = input$term, ignore_case = TRUE)))
+      }
     })
     
-    if(input$go!=0) {
+    input$filterByGroup
+    datasetR <- eventReactive(input$filterByGroup, {
+      if (input$term!="") {
+        dataset <- dataset %>%
+          filter(stringr::str_detect(string = text, pattern = stringr::regex(pattern = input$term, ignore_case = TRUE))) %>% 
+          filter(stringr::str_detect(string = GroupShort, pattern = paste(input$EPgroup, collapse = "|")))
+      } else {
+      dataset <- dataset %>%
+        filter(stringr::str_detect(string = GroupShort, pattern = paste(input$EPgroup, collapse = "|")))
+      }
+    })
+    
+    if(input$filterByGroup!=0|input$filter!=0) {
       dataset <- datasetR()
     }
+    
     dataset
   })
   
