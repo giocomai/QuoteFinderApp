@@ -35,6 +35,15 @@ wc2ClickedWord = function(cloudOutputId, inputId) {
   ))
 }
 
+# wordcloud2 html output fix from https://github.com/Lchiffon/wordcloud2/issues/20
+simpleFixWc2 <- function(inputFile, outputFile){
+  a = readLines(inputFile)
+  output = paste(a, collapse = "\n")
+  output = gsub(">\n\n</div>","></div>",output)
+  writeLines(output, outputFile)
+  invisible(NULL)
+}
+
 langTable <- left_join(x = data_frame(lang = unlist(lang)),
                        y = readRDS(file.path("data", "langCode.rds")) %>%rename(lang = alpha2), by = "lang") %>% 
   mutate(English = stringr::str_extract(string = English, pattern = regex("[[:alnum:]]+")))
