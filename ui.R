@@ -37,7 +37,7 @@ dashboardPage(
                                                    min = 0L, 
                                                    max = 1000L,
                                                    value = 200L,
-                                                   sep = "."
+                                                   sep = ".", width = "95%"
                                 )
                               ),
                               splitLayout(downloadButton("downloadHtml", "Download Html"),
