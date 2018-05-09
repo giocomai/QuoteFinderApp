@@ -325,19 +325,11 @@ shinyServer(function(input, output, session) {
   
   output$HeaderInfoBox <- renderText({
 
-    if (is.null(input$selectedHashtag)) {
-      paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>All tweets</i></div>")
-    } else if (input$selectedHashtag=="All tweets") {
-        paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>All tweets</i>;",
-               #" selected word: <i>",  gsub(":.*","",input$selected_word),
-               "</i></div>")
-    } else {
-      paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>; hashtag: <i>#", input$selectedHashtag, "</i>;",
+      paste0(paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>;"),
+             if (is.null(input$selectedHashtag)==TRUE) (" hashtag: <i>All tweets</i>;") else if (input$selectedHashtag=="All tweets") (" hashtag: <i>All tweets</i>;") else paste0(" hashtag: <i>#", input$selectedHashtag, "</i>;"),
              if (input$string!="") paste0(" string: <i>", input$string, "</i>;"),
              #" selected word: <i>", gsub(":.*","",input$selected_word), 
              "</div>")
-    }
-    
   })
   
   output$TweetsNr <- renderInfoBox({
