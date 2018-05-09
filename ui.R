@@ -24,13 +24,26 @@ dashboardPage(
               tabBox(id = "wordcloud_plot",
                      tabPanel("Interactive wordcloud",
                               wordcloud2Output("wordcloud2"),
-                              shiny::sliderInput(inputId = "MaxWords",
-                                                 label = "Maximum number of words in the wordcloud",
-                                                 min = 0L, 
-                                                 max = 1000L,
-                                                 value = 200L,
-                                                 sep = "."
-                              )
+                              splitLayout(
+                                shiny::sliderInput(inputId = "sizeVarWC2",
+                                                   label = "Wordcloud size",
+                                                   min = 0.1, 
+                                                   max = 2,
+                                                   value = 0.5,
+                                                   sep = "."
+                                ),
+                                shiny::sliderInput(inputId = "MaxWords",
+                                                   label = "Max number of words",
+                                                   min = 0L, 
+                                                   max = 1000L,
+                                                   value = 200L,
+                                                   sep = "."
+                                )
+                              ),
+                              splitLayout(downloadButton("downloadHtml", "Download Html"),
+                                          downloadButton("downloadPng", "Download PNG"))
+                              
+                             
                               # , 
                               # HTML("<b>Tip</b>: by clicking on a term in the wordcloud, only tweets including it are shown in the table below.")
                      )
@@ -90,7 +103,7 @@ dashboardPage(
             box(actionButton(inputId = "reset",
                              label = "Reset filters",
                              icon = icon(name = "recycle", lib = "font-awesome")),
-                bookmarkButton(label = "Get direct link with current filters enabled")
+                bookmarkButton(label = "Get direct link with current settings")
                 )
             ,
               
