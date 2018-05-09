@@ -9,6 +9,8 @@ library(DT)
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
   
+  randomString <- stringi::stri_rand_strings(n=1, length=16)
+  
   #### Reset ####
   
   observeEvent(input$reset, {
@@ -329,7 +331,6 @@ shinyServer(function(input, output, session) {
         #   }
         # }
         
-        randomString <<- stringi::stri_rand_strings(n=1, length=16)
         
         wordcloudGraph
         
