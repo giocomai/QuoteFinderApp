@@ -63,7 +63,29 @@ shinyServer(function(input, output, session) {
 
   currentHashtags <- reactive({
     
-    currentHashtagsDF <- currentDataset() %>%
+    dataset <- dataset %>% 
+      filter(lang==input$language)
+    
+    if (input$dateRangeRadio=="Last week") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-7)
+    } else if (input$dateRangeRadio=="Last month") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-31)
+    } else if (input$dateRangeRadio=="Last three months") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-91)
+    } else {
+      dataset <- dataset %>%
+        filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) 
+    }
+    
+    if (is.null(input$EPgroup)==FALSE) {
+      dataset <- dataset %>%
+        filter(stringr::str_detect(string = GroupShort, pattern = paste(input$EPgroup, collapse = "|")))
+    }
+    
+    currentHashtagsDF <- dataset %>%
       select(screen_name, hashtags) %>%
       unnest() %>%
       na.omit() %>% 
