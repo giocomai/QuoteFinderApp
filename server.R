@@ -110,9 +110,6 @@ shinyServer(function(input, output, session) {
     names(currentHashtagsList) <- currentHashtagsDF$hashtagString
     currentHashtagsList
   })
-  
-    
-  
 
   
   #### UI ####
@@ -158,7 +155,6 @@ shinyServer(function(input, output, session) {
       input$dateRange
       input$dateRangeRadio
       input$selectedHashtag
-      
 
       # If tab is "By hashtag"
       if (input$wordcloud_filters=="By hashtag") {
@@ -173,7 +169,6 @@ shinyServer(function(input, output, session) {
               when(is.element(el = input$language, set = stopwords::stopwords_getlanguages(source = "stopwords-iso")) ~
                      anti_join(., data_frame(word = stopwords::stopwords(language = input$language, source = "stopwords-iso")), by = "word"),
                    ~ .)
-              
           } else {
             temp <- dataset %>% 
               filter(lang==input$language) %>% 
@@ -238,12 +233,10 @@ shinyServer(function(input, output, session) {
   #### Wordcloud 2 ####
   
   wc2 <- reactive(
-    
       
       if (is.null(input$selectedHashtag)==FALSE) {
         
         ##### Wordcloud2 sentiment or unified #####
-        
         if (input$sentimentL=="Sentiment") {
           if (input$language=="en") {
             sentimentDictionary <- tidytext::get_sentiments("bing")
@@ -259,7 +252,6 @@ shinyServer(function(input, output, session) {
               filter(n==1) %>%
               select(word, sentiment)
           }
-          
           
           dataset <- currentDataset() %>% 
             select(clean_text) %>% 
@@ -278,7 +270,6 @@ shinyServer(function(input, output, session) {
                                     true = "#F8766D",
                                     false = "#00BFC4")) %>%
             select(-sentiment)
-          colour <- dataset$colour
           
         } else {
           dataset <- currentDataset() %>%
@@ -289,63 +280,27 @@ shinyServer(function(input, output, session) {
                    anti_join(., data_frame(word = c("via", stopwords::stopwords(language = input$language, source = "stopwords-iso"))), by = "word"),
                  ~ .) %>% 
             count(word, sort = TRUE) %>%
-            slice(1:input$MaxWords) 
-          
-          # customise output color, gradients of blue by frequency
-          colour <- dataset %>% 
-            mutate(colour = case_when(
-              n <= quantile(n)[1] ~ blues[1],
-              n > quantile(n)[1]& n<=quantile(n)[2] ~ blues[2],
-              n > quantile(n)[2]& n<=quantile(n)[3] ~ blues[3],
-              n > quantile(n)[3]& n<=quantile(n)[4] ~ blues[4],
-              n > quantile(n)[4]& n<=quantile(n)[5] ~ blues[4]
-            )) %>% pull(colour)
-          
+            slice(1:input$MaxWords) %>% 
+            mutate(colour = bluesFunc(n()))
         }
         
         # add for log
         
         if (input$sentimentL=="Sentiment") {
-          
           message(paste(Sys.time(), "Wordcloud2SentimentCreated", input$language, sep = "-"))
         } else {
           message(paste(Sys.time(), "Wordcloud2UnifiedCreated", input$language, sep = "-"))
         }
         
-        #sizeVar <- as.numeric(quantile(dataset$n)[5]/quantile(dataset$n)[1]/log(nrow(dataset))/10)
-        
-        if (is.null(input$sizeVarWC2)) {
-          sizeVar <- 0.5
-        } else {
-          sizeVar <- input$sizeVarWC2
-        }
-        
-        
-        wordcloudGraph <- dataset %>% 
-          wordcloud2(size = sizeVar, color = colour)
-        
-        # if (input$htmlDownload==TRUE|input$pngDownload==TRUE) {
-        #   
-        #   baseLink <- file.path(paste(Sys.time(), "wordcloud", stringi::stri_rand_strings(n=1, length=8), sep = "-"))
-        #   filenameHTML <- paste0(baseLink, ".html")
-        #   filenamePNG <-  paste0("wordcloud/", baseLink, ".png")
-        #   saveWidget(widget = wordcloudGraph, file = filenameHTML, selfcontained = FALSE)
-        #   file.rename(from = filenameHTML, to = file.path("wordcloud", filenameHTML))
-        #   file.rename(from = paste0(baseLink, "_files"), to = file.path("wordcloud", paste0(baseLink, "_files")))
-        #   if (input$pngDownload==TRUE) {
-        #     webshot(url = file.path("wordcloud", filenameHTML), file = filenamePNG, delay = 3, vwidth = 1024, vheight = 768)
-        #   }
-        # }
-        
-        
-        wordcloudGraph
-        
+        dataset 
       }
       
       
   )
   
-  output$wordcloud2 <- renderWordcloud2(wc2())
+  output$wordcloud2 <- renderWordcloud2(
+    if (is.null(wc2())==FALSE) wc2() %>% wordcloud2(size = if (is.null(input$sizeVarWC2)) 0.5 else input$sizeVarWC2,
+                                                            color = wc2()$colour))
   
   #### Download ####
   
@@ -356,8 +311,9 @@ shinyServer(function(input, output, session) {
     content = function(file) {
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      saveWidget(widget = wc2(), file = paste0(randomString, ".html"), selfcontained = FALSE)
-      webshot(url = paste0(randomString, ".html"), file = file, delay = 3, vwidth = 1024, vheight = 768)
+      saveWidget(widget = wc2() %>% wordcloud2(size = input$sizeVarWC2*2,
+                                               color = wc2()$colour), file = paste0(randomString, ".html"), selfcontained = FALSE)
+      webshot(url = paste0(randomString, ".html"), file = file, delay = 3, vwidth = 1280, vheight = 960)
     },
     contentType = "image/png")
   
@@ -366,7 +322,8 @@ shinyServer(function(input, output, session) {
     content = function(file) {
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      saveWidget(widget = wc2(), file = file, selfcontained = TRUE)
+      saveWidget(widget = wc2() %>% wordcloud2(size = input$sizeVarWC2*2,
+                                               color = wc2()$colour), file = file, selfcontained = TRUE)
       simpleFixWc2(file, file)
     })
 
