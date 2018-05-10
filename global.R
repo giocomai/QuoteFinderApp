@@ -18,7 +18,7 @@ library(RColorBrewer)
 pal <- brewer.pal(9,"Blues")
 pal <- pal[-(1:5)]
 
-bluesFunc <- colorRampPalette(colors = c("#4292C6", "#08306B"))
+bluesFunc <- colorRampPalette(colors = c("#08306B", "#4292C6"))
 blues <- bluesFunc(5)
 
 # European formatting of large numbers
