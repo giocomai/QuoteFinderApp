@@ -1,5 +1,6 @@
 library(shiny)
 library(shinydashboard)
+library(shinycustomloader)
 
 function(request) {
 dashboardPage(
@@ -23,7 +24,9 @@ dashboardPage(
               #### Box 1: Wordcloud ####
               tabBox(id = "wordcloud_plot",
                      tabPanel("Interactive wordcloud",
-                              wordcloud2Output("wordcloud2"),
+                              withLoader(ui_element = wordcloud2Output("wordcloud2"),
+                                         type = "html",
+                                         loader = "loader5"),
                               splitLayout(
                                 shiny::sliderInput(inputId = "sizeVarWC2",
                                                    label = "Wordcloud size",
