@@ -97,8 +97,8 @@ dashboardPage(
                                                    choices = EPGroupShort,
                                                    inline = TRUE)
                          #,actionButton("filterByGroup", "Filter", icon = icon("filter", class = "font-awesome"))
-                         
-                )
+                ),
+                tabPanel("By MEP", shiny::uiOutput(outputId = "MEPfilter_UI"))
               ), 
             box(actionButton(inputId = "reset",
                              label = "Reset filters",

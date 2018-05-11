@@ -58,6 +58,11 @@ shinyServer(function(input, output, session) {
         filter(stringr::str_detect(string = GroupShort, pattern = paste(input$EPgroup, collapse = "|")))
     }
     
+    if (is.null(input$MEPfilter)==FALSE) {
+      dataset <- dataset %>%
+        filter(stringr::str_detect(string = screen_name, pattern = paste(input$MEPfilter, collapse = "|")))
+    }
+    
     dataset
   })
 
@@ -108,7 +113,61 @@ shinyServer(function(input, output, session) {
       mutate(hashtagString = paste0("#", hashtags, " (", nMepPerHashtag, " MEPs, ", nTotal, " tweets)"))
     currentHashtagsList <- as.list(currentHashtagsDF$hashtags)
     names(currentHashtagsList) <- currentHashtagsDF$hashtagString
+    
     currentHashtagsList
+  })
+  
+  currentMEPs <- reactive({
+    
+    dataset <- dataset %>% 
+      filter(lang==input$language)
+    
+    if (input$dateRangeRadio=="Last week") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-7)
+    } else if (input$dateRangeRadio=="Last month") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-31)
+    } else if (input$dateRangeRadio=="Last three months") {
+      dataset <-  dataset %>% 
+        filter(date>Sys.Date()-91)
+    } else {
+      dataset <- dataset %>%
+        filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) 
+    }
+    
+    if (is.null(input$EPgroup)==FALSE) {
+      dataset <- dataset %>%
+        filter(stringr::str_detect(string = GroupShort, pattern = paste(input$EPgroup, collapse = "|")))
+    }
+    
+    # filter language
+    dataset <- dataset %>% 
+      filter(lang==input$language)
+    #filter hashtag
+    if(is.null(input$selectedHashtag)){
+      
+    } else if(input$selectedHashtag=="All tweets") {
+      
+    } else {
+      dataset <- dataset %>% 
+        filter(purrr::map_lgl(.x = hashtags, .f = function (x) is.element(el = tolower(input$selectedHashtag), set = tolower(x))))
+    }
+    
+    if (input$string!="") {
+      dataset <- dataset %>%
+        filter(stringr::str_detect(string = text, pattern = stringr::regex(pattern = input$string, ignore_case = TRUE)))
+    }
+    
+    if (is.null(input$EPgroup)==FALSE) {
+      dataset <- dataset %>%
+        filter(stringr::str_detect(string = GroupShort, pattern = paste(input$EPgroup, collapse = "|")))
+    }
+    
+    temp <- dataset %>% distinct(NAME, screen_name) %>% filter(is.na(NAME)==FALSE) %>% arrange(NAME)
+    currentMEPsList <- structure(as.list(temp$screen_name), names = as.character(temp$NAME))
+    currentMEPsList
+    
   })
 
   
@@ -119,6 +178,12 @@ shinyServer(function(input, output, session) {
                           label = "Select hashtag",
                           choices = c(list("All tweets"),
                             currentHashtags()))
+  })
+  
+  output$MEPfilter_UI <- renderUI({
+    shiny::selectizeInput(inputId = "MEPfilter", label = "Filter by MEP",
+                          choices = currentMEPs(),
+                          multiple = TRUE)
   })
   
   output$MaxWords_UI <- renderUI({
