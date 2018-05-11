@@ -67,18 +67,26 @@ dashboardPage(
                   )
                 )
                 ,
+                HTML("<b>Filter tweets by language</b>"),
+                shiny::checkboxInput(inputId = "anyLanguage",
+                                     label = "Any language",
+                                     value = FALSE),
+                conditionalPanel("input.anyLanguage == false",
+                                 shiny::selectInput(inputId = "language",
+                                                    label = NULL,
+                                                    choices = lang,
+                                                    selected = "en"))
 
-                shiny::selectInput(inputId = "language",
-                                   label = "Filter tweets by language",
-                                   choices = lang,
-                                   selected = "en"),
+                ,
                 uiOutput(outputId = "hashtags_UI"),
-                shiny::radioButtons(inputId = "sentimentL",
-                                    label = "Type of wordcloud",
-                                    choices = c("Unified",
-                                                "Sentiment"),
-                                    inline = TRUE)
-                ),
+                conditionalPanel("input.anyLanguage == false",
+                                 shiny::radioButtons(inputId = "sentimentL",
+                                                     label = "Type of wordcloud",
+                                                     choices = c("Unified",
+                                                                 "Sentiment"),
+                                                     inline = TRUE)
+                )
+              ),
               
               #### Box 3: Wordcloud filters ####
               

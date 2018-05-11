@@ -36,8 +36,10 @@ shinyServer(function(input, output, session) {
         filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) 
     }
     # filter language
-    dataset <- dataset %>% 
-      filter(lang==input$language)
+    if (input$anyLanguage==FALSE) {
+      dataset <- dataset %>% 
+        filter(lang==input$language)
+    }
     #filter hashtag
     if(is.null(input$selectedHashtag)){
    
@@ -62,14 +64,15 @@ shinyServer(function(input, output, session) {
       dataset <- dataset %>%
         filter(stringr::str_detect(string = screen_name, pattern = paste(input$MEPfilter, collapse = "|")))
     }
-    
     dataset
   })
 
   currentHashtags <- reactive({
     
-    dataset <- dataset %>% 
-      filter(lang==input$language)
+    if (input$anyLanguage==FALSE) {
+      dataset <- dataset %>% 
+        filter(lang==input$language)
+    }
     
     if (input$dateRangeRadio=="Last week") {
       dataset <-  dataset %>% 
@@ -84,7 +87,6 @@ shinyServer(function(input, output, session) {
       dataset <- dataset %>%
         filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) 
     }
-    
     if (is.null(input$EPgroup)==FALSE) {
       dataset <- dataset %>%
         filter(stringr::str_detect(string = GroupShort, pattern = paste(input$EPgroup, collapse = "|")))
@@ -119,9 +121,6 @@ shinyServer(function(input, output, session) {
   
   currentMEPs <- reactive({
     
-    dataset <- dataset %>% 
-      filter(lang==input$language)
-    
     if (input$dateRangeRadio=="Last week") {
       dataset <-  dataset %>% 
         filter(date>Sys.Date()-7)
@@ -142,8 +141,11 @@ shinyServer(function(input, output, session) {
     }
     
     # filter language
-    dataset <- dataset %>% 
-      filter(lang==input$language)
+    if (input$anyLanguage==FALSE) {
+      dataset <- dataset %>% 
+        filter(lang==input$language)
+    }
+    
     #filter hashtag
     if(is.null(input$selectedHashtag)){
       
@@ -337,16 +339,35 @@ shinyServer(function(input, output, session) {
             select(-sentiment)
           
         } else {
-          dataset <- currentDataset() %>%
-            select(clean_text) %>% 
-            unnest_tokens(input = clean_text, output = word) %>% 
-            # remove stopwords, if list for the relevant language is available, otherwise do nothing
-            when(is.element(el = input$language, set = stopwords::stopwords_getlanguages(source = "stopwords-iso")) ~
-                   anti_join(., data_frame(word = c("via", stopwords::stopwords(language = input$language, source = "stopwords-iso"))), by = "word"),
-                 ~ .) %>% 
-            count(word, sort = TRUE) %>%
-            slice(1:input$MaxWords) %>% 
-            mutate(colour = bluesFunc(n()))
+          
+          if (input$anyLanguage==TRUE) {
+            dataset <- currentDataset() %>% 
+              select(clean_text, lang) %>% 
+              unnest_tokens(input = clean_text, output = word) %>% 
+              mutate(stopword = FALSE)
+            
+            for (i in stopwords::stopwords_getlanguages(source = "stopwords-iso")) {
+              if (length(dataset$stopword[dataset$lang==i])!=0) {
+                dataset$stopword[dataset$lang==i] <- is.element(el = dataset$word[dataset$lang==i], set = c("via", stopwords::stopwords(language = i, source = "stopwords-iso")))
+              }
+            }
+            dataset <- dataset %>% filter(stopword==FALSE) %>% 
+              count(word, sort = TRUE) %>%
+              slice(1:input$MaxWords) %>% 
+              mutate(colour = bluesFunc(n()))
+            
+          } else {
+            dataset <- currentDataset() %>%
+              select(clean_text) %>% 
+              unnest_tokens(input = clean_text, output = word) %>% 
+              # remove stopwords, if list for the relevant language is available, otherwise do nothing
+              when(is.element(el = input$language, set = stopwords::stopwords_getlanguages(source = "stopwords-iso")) ~
+                     anti_join(., data_frame(word = c("via", stopwords::stopwords(language = input$language, source = "stopwords-iso"))), by = "word"),
+                   ~ .) %>% 
+              count(word, sort = TRUE) %>%
+              slice(1:input$MaxWords) %>% 
+              mutate(colour = bluesFunc(n()))
+          }
         }
         
         # add for log
