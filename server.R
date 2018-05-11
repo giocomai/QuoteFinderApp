@@ -423,7 +423,7 @@ shinyServer(function(input, output, session) {
       on.exit(setwd(owd))
       saveWidget(widget = wc2() %>% wordcloud2(size = input$sizeVarWC2*2,
                                                color = wc2()$colour), file = paste0(randomString, ".html"), selfcontained = FALSE)
-      webshot(url = paste0(randomString, ".html"), file = file, delay = 3, vwidth = 1280, vheight = 960)
+      webshot(url = paste0(randomString, ".html"), file = file, delay = if_else(condition = input$MaxWords>500, true = 5, false = 3), vwidth = 1280, vheight = 960)
     },
     contentType = "image/png")
   
