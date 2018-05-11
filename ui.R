@@ -75,7 +75,11 @@ dashboardPage(
                                  shiny::selectInput(inputId = "language",
                                                     label = NULL,
                                                     choices = lang,
-                                                    selected = "en"))
+                                                    selected = "en")),
+                conditionalPanel("input.anyLanguage == true",
+                                 shiny::checkboxInput(inputId = "colourLanguage",
+                                                      label = "A different colour for each language?",
+                                                      value = TRUE))
 
                 ,
                 uiOutput(outputId = "hashtags_UI"),

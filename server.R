@@ -351,11 +351,35 @@ shinyServer(function(input, output, session) {
                 dataset$stopword[dataset$lang==i] <- is.element(el = dataset$word[dataset$lang==i], set = c("via", stopwords::stopwords(language = i, source = "stopwords-iso")))
               }
             }
-            dataset <- dataset %>% filter(stopword==FALSE) %>% 
-              count(word, sort = TRUE) %>%
-              slice(1:input$MaxWords) %>% 
-              mutate(colour = bluesFunc(n()))
-            
+            if (input$colourLanguage==TRUE) {
+              dataset <- dataset %>%
+                filter(stopword==FALSE) %>% 
+                group_by(lang) %>% 
+                count(word, sort = TRUE) %>% 
+                add_tally(wt = n) %>% 
+                arrange(desc(nn)) %>% 
+                ungroup() %>% 
+                mutate(lang = factor(x = lang, levels = unique(lang)))
+              
+              dataset$LangRank <- dataset %>% group_indices(., factor(lang, levels = unique(lang)))
+              
+              dataset <- dataset %>% 
+                filter(LangRank<10) %>% 
+                ungroup() %>% 
+                top_n(n = input$MaxWords, wt = n) %>% 
+                arrange(LangRank) %>% 
+                left_join(data_frame(LangRank = 1:9, colour = brewer.pal(n = 9, name = "Set1")), by = "LangRank") %>% 
+                select(word, n, colour) %>% 
+                arrange(desc(n))
+              
+              
+            } else if (input$colourLanguage==FALSE) {
+              dataset <- dataset %>%
+                filter(stopword==FALSE) %>% 
+                count(word, sort = TRUE) %>%
+                slice(1:input$MaxWords) %>% 
+                mutate(colour = bluesFunc(n()))
+            }
           } else {
             dataset <- currentDataset() %>%
               select(clean_text) %>% 
