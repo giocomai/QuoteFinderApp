@@ -444,6 +444,7 @@ shinyServer(function(input, output, session) {
     DT::datatable(data = currentDataset() %>% 
       select(screen_name, date, text, Link, GroupShort) %>% 
       arrange(desc(date))%>% 
+        head(30000) %>% 
       rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"),
     escape = FALSE, options = list(pageLength = 5, lengthMenu = c(3, 5, 10, 15, 20)), rownames=FALSE)
       
