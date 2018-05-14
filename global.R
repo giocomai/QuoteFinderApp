@@ -8,12 +8,15 @@ library(reshape2)
 library(stopwords)
 library(syuzhet)
 library(colourpicker)
+library(shinyWidgets)
 
 dataset <- readRDS(file = file.path("data", "dataset.rds"))
 hashtagsList <- readRDS(file = file.path("data", "hashtags.rds"))
 lang <- readRDS(file = file.path("data", "lang.rds"))
 EPGroupShort <- readRDS(file = file.path("data", "EPGroupShort.rds"))
 countries <- readRDS(file = file.path("data", "countries.rds"))
+
+palettes <- readRDS(file = "palettes.rds")
 
 library(RColorBrewer)
 pal <- brewer.pal(9,"Blues")

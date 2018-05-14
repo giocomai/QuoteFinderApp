@@ -199,15 +199,29 @@ shinyServer(function(input, output, session) {
   output$colourMost_UI <- renderUI({
     if (input$sentimentL=="Sentiment") {
       colourInput(inputId = "colourPositive", label = "Colour for positive terms", value = "#00BFC4", showColour = "both")
-    } else {
+    } else if (input$anyLanguage==TRUE&input$colourLanguage==TRUE) {
+      pickerInput(
+        inputId = "multilingual_palette", label = "Choose a palette:",
+        choices = palettes$colors_pal, selected = "Set1", width = "200%",
+        choicesOpt = list(
+          content = sprintf(
+            "<div style='width:100%%;padding:5px;border-radius:4px;background:%s;color:%s'>%s</div>",
+            unname(palettes$background_pals), palettes$colortext_pals, names(palettes$background_pals)
+          )
+        )
+      )
+      } else {
       colourInput(inputId = "colourMost", label = "Colour for most frequent terms", value = "#08306B", showColour = "both")
-    }
+    } 
   })
   
   output$colourLeast_UI <- renderUI({
     if (input$sentimentL=="Sentiment") {
       colourInput(inputId = "colourNegative", label = "Colour for negative terms", value = "#F8766D", showColour = "both")
-    } else {
+    } else if (input$anyLanguage==TRUE&input$colourLanguage==TRUE) {
+      # leave empty
+    }
+    else {
       colourInput(inputId = "colourLeast", label = "Colour for least frequent terms", value = "#4292C6", showColour = "both")  
     }
   })
@@ -319,6 +333,8 @@ shinyServer(function(input, output, session) {
     
     if (is.null(input$colourMost)==FALSE) {
       createPalette <- colorRampPalette(colors = c(input$colourMost, input$colourLeast))
+    } else if(input$anyLanguage==TRUE&input$colourLanguage==TRUE) {
+      ### 
     } else {
       createPalette <- colorRampPalette(colors = c("#08306B", "#4292C6"))
     }
@@ -385,12 +401,18 @@ shinyServer(function(input, output, session) {
               
               dataset$LangRank <- dataset %>% group_indices(., factor(lang, levels = unique(lang)))
               
+              if (is.null(input$multilingual_palette)) {
+                MaxLang <- 9
+              } else {
+                MaxLang <- brewer.pal.info$maxcolors[rownames(brewer.pal.info)==input$multilingual_palette]
+              }
+              
               dataset <- dataset %>% 
-                filter(LangRank<10) %>% 
+                filter(LangRank<(MaxLang+1)) %>% 
                 ungroup() %>% 
                 top_n(n = input$MaxWords, wt = n) %>% 
                 arrange(LangRank) %>% 
-                left_join(data_frame(LangRank = 1:9, colour = brewer.pal(n = 9, name = "Set1")), by = "LangRank") %>% 
+                left_join(data_frame(LangRank = if (is.null(input$multilingual_palette)) 1:9 else if(brewer.pal.info$category[rownames(brewer.pal.info)==input$multilingual_palette]=="seq") MaxLang:1 else 1:MaxLang, colour = brewer.pal(n = MaxLang, name = if (is.null(input$multilingual_palette)) "Set1" else input$multilingual_palette)), by = "LangRank") %>% 
                 select(word, n, colour) %>% 
                 arrange(desc(n))
               
