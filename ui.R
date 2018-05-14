@@ -43,10 +43,19 @@ dashboardPage(
                                                    sep = ".", width = "95%"
                                 )
                               ),
+                              splitLayout(shiny::uiOutput(outputId = "colourMost_UI"),
+                                          shiny::uiOutput(outputId = "colourLeast_UI"),
+                                cellWidths = "50%",
+tags$head(tags$style(HTML("
+                              .shiny-split-layout > div {
+                                overflow: visible;
+                              }
+                              ")))),
                               splitLayout(downloadButton("downloadHtml", "Download Html"),
                                           downloadButton("downloadPng", "Download PNG"))
-                              
                              
+                              
+
                               # , 
                               # HTML("<b>Tip</b>: by clicking on a term in the wordcloud, only tweets including it are shown in the table below.")
                      )

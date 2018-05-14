@@ -319,6 +319,8 @@ shinyServer(function(input, output, session) {
     
     if (is.null(input$colourMost)==FALSE) {
       createPalette <- colorRampPalette(colors = c(input$colourMost, input$colourLeast))
+    } else {
+      createPalette <- colorRampPalette(colors = c("#08306B", "#4292C6"))
     }
       
       if (is.null(input$selectedHashtag)==FALSE) {
