@@ -7,6 +7,7 @@ library(tidyverse)
 library(reshape2)
 library(stopwords)
 library(syuzhet)
+library(colourpicker)
 
 dataset <- readRDS(file = file.path("data", "dataset.rds"))
 hashtagsList <- readRDS(file = file.path("data", "hashtags.rds"))
@@ -18,8 +19,7 @@ library(RColorBrewer)
 pal <- brewer.pal(9,"Blues")
 pal <- pal[-(1:5)]
 
-bluesFunc <- colorRampPalette(colors = c("#08306B", "#4292C6"))
-blues <- bluesFunc(5)
+
 
 # European formatting of large numbers
 point <- scales::format_format(big.mark = ".", decimal.mark = ",", scientific = FALSE)

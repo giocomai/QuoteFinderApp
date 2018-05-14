@@ -196,6 +196,22 @@ shinyServer(function(input, output, session) {
                        )
   })
   
+  output$colourMost_UI <- renderUI({
+    if (input$sentimentL=="Sentiment") {
+      colourInput(inputId = "colourPositive", label = "Colour for positive terms", value = "#00BFC4", showColour = "both")
+    } else {
+      colourInput(inputId = "colourMost", label = "Colour for most frequent terms", value = "#08306B", showColour = "both")
+    }
+  })
+  
+  output$colourLeast_UI <- renderUI({
+    if (input$sentimentL=="Sentiment") {
+      colourInput(inputId = "colourNegative", label = "Colour for negative terms", value = "#F8766D", showColour = "both")
+    } else {
+      colourInput(inputId = "colourLeast", label = "Colour for least frequent terms", value = "#4292C6", showColour = "both")  
+    }
+  })
+  
   #### Subset date range ####
   
   observe({
@@ -299,7 +315,11 @@ shinyServer(function(input, output, session) {
   
   #### Wordcloud 2 ####
   
-  wc2 <- reactive(
+  wc2 <- reactive({
+    
+    if (is.null(input$colourMost)==FALSE) {
+      createPalette <- colorRampPalette(colors = c(input$colourMost, input$colourLeast))
+    }
       
       if (is.null(input$selectedHashtag)==FALSE) {
         
@@ -334,8 +354,8 @@ shinyServer(function(input, output, session) {
             count(word, sentiment, sort = TRUE) %>% 
             slice(1:input$MaxWords) %>% 
             mutate(colour = if_else(condition = sentiment=="negative",
-                                    true = "#F8766D",
-                                    false = "#00BFC4")) %>%
+                                    true = if (is.null(input$colourNegative)) "#F8766D" else input$colourNegative,
+                                    false = if (is.null(input$colourPositive)) "#00BFC4" else input$colourPositive)) %>%
             select(-sentiment)
           
         } else {
@@ -378,7 +398,7 @@ shinyServer(function(input, output, session) {
                 filter(stopword==FALSE) %>% 
                 count(word, sort = TRUE) %>%
                 slice(1:input$MaxWords) %>% 
-                mutate(colour = bluesFunc(n()))
+                mutate(colour = createPalette(n()))
             }
           } else {
             dataset <- currentDataset() %>%
@@ -390,7 +410,7 @@ shinyServer(function(input, output, session) {
                    ~ .) %>% 
               count(word, sort = TRUE) %>%
               slice(1:input$MaxWords) %>% 
-              mutate(colour = bluesFunc(n()))
+              mutate(colour = createPalette(n()))
           }
         }
         
@@ -406,7 +426,7 @@ shinyServer(function(input, output, session) {
       }
       
       
-  )
+  })
   
   output$wordcloud2 <- renderWordcloud2(
     if (is.null(wc2())==FALSE) wc2() %>% wordcloud2(size = if (is.null(input$sizeVarWC2)) 0.5 else input$sizeVarWC2,
