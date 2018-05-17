@@ -92,9 +92,14 @@ tags$head(tags$style(HTML("
                                  shiny::checkboxInput(inputId = "colourLanguage",
                                                       label = "A different colour for each language?",
                                                       value = TRUE))
-
                 ,
                 uiOutput(outputId = "hashtags_UI"),
+                HTML("<bTrending hashtags in the last week</b>"),
+                actionButton(inputId = "trendingHashtag_1", label = trendingHashtags$en[1]),
+                actionButton(inputId = "trendingHashtag_2", label = trendingHashtags$en[2]),
+                actionButton(inputId = "trendingHashtag_3", label = trendingHashtags$en[3]),
+                actionButton(inputId = "trendingHashtag_4", label = trendingHashtags$en[4]),
+                actionButton(inputId = "trendingHashtag_5", label = trendingHashtags$en[5]),
                 conditionalPanel("input.anyLanguage == false",
                                  shiny::radioButtons(inputId = "sentimentL",
                                                      label = "Type of wordcloud",
@@ -128,9 +133,8 @@ tags$head(tags$style(HTML("
                              label = "Reset filters",
                              icon = icon(name = "recycle", lib = "font-awesome")),
                 bookmarkButton(label = "Get direct link with current settings")
-                )
-            ,
-              
+                ),
+
               #### Box 4: infobox ####
               box(title = NULL,
                   shiny::htmlOutput(outputId = "HeaderInfoBox"),
