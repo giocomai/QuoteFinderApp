@@ -242,6 +242,31 @@ shinyServer(function(input, output, session) {
     updateActionButton(session = session, inputId = "trendingHashtag_5", label = currentTrendingHashtags()[5])
   })
   
+  observeEvent(eventExpr = input$trendingHashtag_1, {
+    updateSelectizeInput(session = session,
+                         inputId = "selectedHashtag",
+                         selected = currentHashtags()[tolower(as.character(unlist(currentHashtags())))==tolower(stringr::str_remove(string = currentTrendingHashtags()[1], pattern = "#"))])
+  })
+  observeEvent(eventExpr = input$trendingHashtag_2, {
+    updateSelectizeInput(session = session,
+                         inputId = "selectedHashtag",
+                         selected = currentHashtags()[tolower(as.character(unlist(currentHashtags())))==tolower(stringr::str_remove(string = currentTrendingHashtags()[2], pattern = "#"))])
+  })
+  observeEvent(eventExpr = input$trendingHashtag_3, {
+    updateSelectizeInput(session = session,
+                         inputId = "selectedHashtag",
+                         selected = currentHashtags()[tolower(as.character(unlist(currentHashtags())))==tolower(stringr::str_remove(string = currentTrendingHashtags()[3], pattern = "#"))])
+  })
+  observeEvent(eventExpr = input$trendingHashtag_4, {
+    updateSelectizeInput(session = session,
+                         inputId = "selectedHashtag",
+                         selected = currentHashtags()[tolower(as.character(unlist(currentHashtags())))==tolower(stringr::str_remove(string = currentTrendingHashtags()[4], pattern = "#"))])
+  })
+  observeEvent(eventExpr = input$trendingHashtag_5, {
+    updateSelectizeInput(session = session,
+                         inputId = "selectedHashtag",
+                         selected = currentHashtags()[tolower(as.character(unlist(currentHashtags())))==tolower(stringr::str_remove(string = currentTrendingHashtags()[5], pattern = "#"))])
+  })
   #### Subset date range ####
   
   observe({
