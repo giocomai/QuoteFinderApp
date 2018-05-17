@@ -94,7 +94,7 @@ tags$head(tags$style(HTML("
                                                       value = TRUE))
                 ,
                 uiOutput(outputId = "hashtags_UI"),
-                HTML("<bTrending hashtags in the last week</b>"),
+                HTML("<b>Trending hashtags</b><br />"),
                 actionButton(inputId = "trendingHashtag_1", label = trendingHashtags$en[1]),
                 actionButton(inputId = "trendingHashtag_2", label = trendingHashtags$en[2]),
                 actionButton(inputId = "trendingHashtag_3", label = trendingHashtags$en[3]),
