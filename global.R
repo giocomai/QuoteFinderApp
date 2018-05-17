@@ -1,14 +1,24 @@
-library(shiny)
-library(tidytext)
-library(wordcloud)
-library(wordcloud2)
-library(stringr)
-library(tidyverse)
-library(reshape2)
-library(stopwords)
-library(syuzhet)
-library(colourpicker)
-library(shinyWidgets)
+if (!require("pacman")) install.packages("pacman", repos = "https://cloud.r-project.org") # for taking care of package installation/loading
+
+pacman::p_load("shiny")
+pacman::p_load("tidytext")
+pacman::p_load("wordcloud")
+pacman::p_load("wordcloud2")
+pacman::p_load("stringr")
+pacman::p_load("tidyverse")
+pacman::p_load("reshape2")
+pacman::p_load("stopwords")
+pacman::p_load("syuzhet")
+pacman::p_load("colourpicker")
+pacman::p_load("shinyWidgets")
+pacman::p_load("RColorBrewer")
+pacman::p_load("shinydashboard")
+pacman::p_load("shinycustomloader")
+pacman::p_load("DT")
+pacman::p_load("webshot")
+
+# install phantomjs at first run to enable downloading png wordclouds
+# webshot::install_phantomjs()
 
 dataset <- readRDS(file = file.path("data", "dataset.rds"))
 hashtagsList <- readRDS(file = file.path("data", "hashtags.rds"))
@@ -18,7 +28,6 @@ countries <- readRDS(file = file.path("data", "countries.rds"))
 
 palettes <- readRDS(file = "palettes.rds")
 
-library(RColorBrewer)
 pal <- brewer.pal(9,"Blues")
 pal <- pal[-(1:5)]
 
