@@ -22,6 +22,7 @@ pacman::p_load("webshot")
 
 dataset <- readRDS(file = file.path("data", "dataset.rds"))
 hashtagsList <- readRDS(file = file.path("data", "hashtags.rds"))
+trendingHashtags <- readRDS(file = file.path("data", "trendingHashtags.rds"))
 lang <- readRDS(file = file.path("data", "lang.rds"))
 EPGroupShort <- readRDS(file = file.path("data", "EPGroupShort.rds"))
 countries <- readRDS(file = file.path("data", "countries.rds"))

@@ -6,8 +6,8 @@ library(tidyverse)
 library(webshot)
 library(DT)
 
-# Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
+  
   
   randomString <- stringi::stri_rand_strings(n=1, length=16)
   
@@ -119,6 +119,14 @@ shinyServer(function(input, output, session) {
     currentHashtagsList
   })
   
+  currentTrendingHashtags <- reactive({
+    if (input$anyLanguage==TRUE)  {
+      as.character(trendingHashtags$AnyLanguage)
+    } else {
+      as.character(unlist(trendingHashtags[names(trendingHashtags)==input$language]))
+    }
+  })
+  
   currentMEPs <- reactive({
     
     if (input$dateRangeRadio=="Last week") {
@@ -224,6 +232,14 @@ shinyServer(function(input, output, session) {
     else {
       colourInput(inputId = "colourLeast", label = "Colour for least frequent terms", value = "#4292C6", showColour = "both")  
     }
+  })
+  
+  observe({
+    updateActionButton(session = session, inputId = "trendingHashtag_1", label = currentTrendingHashtags()[1])
+    updateActionButton(session = session, inputId = "trendingHashtag_2", label = currentTrendingHashtags()[2])
+    updateActionButton(session = session, inputId = "trendingHashtag_3", label = currentTrendingHashtags()[3])
+    updateActionButton(session = session, inputId = "trendingHashtag_4", label = currentTrendingHashtags()[4])
+    updateActionButton(session = session, inputId = "trendingHashtag_5", label = currentTrendingHashtags()[5])
   })
   
   #### Subset date range ####
