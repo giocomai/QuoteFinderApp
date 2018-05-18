@@ -16,6 +16,8 @@ shinyServer(function(input, output, session) {
   observeEvent(input$reset, {
     updateTextInput(session = session, inputId = "string", value = "")
     updateCheckboxGroupInput(session = session, inputId = "EPgroup", selected = character(0))
+    updateSelectizeInput(session = session, inputId = "MEPfilter", selected = character(0))
+    updateSelectizeInput(session = session, inputId = "selectedHashtag", selected = "All tweets")
   })
   
   #### Reactive ####
