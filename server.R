@@ -242,6 +242,19 @@ shinyServer(function(input, output, session) {
     updateActionButton(session = session, inputId = "trendingHashtag_5", label = currentTrendingHashtags()[5])
     updateActionButton(session = session, inputId = "trendingHashtag_6", label = currentTrendingHashtags()[6])
     updateActionButton(session = session, inputId = "trendingHashtag_7", label = currentTrendingHashtags()[7])
+    updateActionButton(session = session, inputId = "trendingHashtag_8", label = currentTrendingHashtags()[8])
+  })
+  output$trendingHashtagsTitle <- renderUI({
+    if (length(currentTrendingHashtags())>0) {
+      HTML("<b>Trending hashtags</b><br />")
+    }
+  })
+  
+  output$trendingHashtags <- renderUI({
+    lapply(seq_along(currentTrendingHashtags()[1:8]), function(x){
+      do.call(actionButton, list(inputId = paste("trendingHashtag", x, sep = "_"), label = currentTrendingHashtags()[x]))
+    }
+    )
   })
   
   observeEvent(eventExpr = input$trendingHashtag_1, {
@@ -278,6 +291,11 @@ shinyServer(function(input, output, session) {
     updateSelectizeInput(session = session,
                          inputId = "selectedHashtag",
                          selected = currentHashtags()[tolower(as.character(unlist(currentHashtags())))==tolower(stringr::str_remove(string = currentTrendingHashtags()[7], pattern = "#"))])
+  })
+  observeEvent(eventExpr = input$trendingHashtag_8, {
+    updateSelectizeInput(session = session,
+                         inputId = "selectedHashtag",
+                         selected = currentHashtags()[tolower(as.character(unlist(currentHashtags())))==tolower(stringr::str_remove(string = currentTrendingHashtags()[8], pattern = "#"))])
   })
   #### Subset date range ####
   
