@@ -100,6 +100,8 @@ tags$head(tags$style(HTML("
                 actionButton(inputId = "trendingHashtag_3", label = trendingHashtags$en[3]),
                 actionButton(inputId = "trendingHashtag_4", label = trendingHashtags$en[4]),
                 actionButton(inputId = "trendingHashtag_5", label = trendingHashtags$en[5]),
+                actionButton(inputId = "trendingHashtag_6", label = trendingHashtags$en[6]),
+                actionButton(inputId = "trendingHashtag_7", label = trendingHashtags$en[7]),
                 conditionalPanel("input.anyLanguage == false",
                                  shiny::radioButtons(inputId = "sentimentL",
                                                      label = "Type of wordcloud",

@@ -240,6 +240,8 @@ shinyServer(function(input, output, session) {
     updateActionButton(session = session, inputId = "trendingHashtag_3", label = currentTrendingHashtags()[3])
     updateActionButton(session = session, inputId = "trendingHashtag_4", label = currentTrendingHashtags()[4])
     updateActionButton(session = session, inputId = "trendingHashtag_5", label = currentTrendingHashtags()[5])
+    updateActionButton(session = session, inputId = "trendingHashtag_6", label = currentTrendingHashtags()[6])
+    updateActionButton(session = session, inputId = "trendingHashtag_7", label = currentTrendingHashtags()[7])
   })
   
   observeEvent(eventExpr = input$trendingHashtag_1, {
@@ -266,6 +268,16 @@ shinyServer(function(input, output, session) {
     updateSelectizeInput(session = session,
                          inputId = "selectedHashtag",
                          selected = currentHashtags()[tolower(as.character(unlist(currentHashtags())))==tolower(stringr::str_remove(string = currentTrendingHashtags()[5], pattern = "#"))])
+  })
+  observeEvent(eventExpr = input$trendingHashtag_6, {
+    updateSelectizeInput(session = session,
+                         inputId = "selectedHashtag",
+                         selected = currentHashtags()[tolower(as.character(unlist(currentHashtags())))==tolower(stringr::str_remove(string = currentTrendingHashtags()[6], pattern = "#"))])
+  })
+  observeEvent(eventExpr = input$trendingHashtag_7, {
+    updateSelectizeInput(session = session,
+                         inputId = "selectedHashtag",
+                         selected = currentHashtags()[tolower(as.character(unlist(currentHashtags())))==tolower(stringr::str_remove(string = currentTrendingHashtags()[7], pattern = "#"))])
   })
   #### Subset date range ####
   
