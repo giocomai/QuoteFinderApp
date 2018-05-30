@@ -71,7 +71,7 @@ tags$head(tags$style(HTML("
                                     choices = as.list(c("Last week", "Last month", "Last three months", "Custom range")),
                                     selected = "Last month", inline = TRUE),
                 conditionalPanel(
-                  condition = "input.dateRangeRcadio == 'Custom range'",
+                  condition = "input.dateRangeRadio == 'Custom range'",
                   shiny::dateRangeInput(inputId = 'dateRange',
                                         weekstart = 1,
                                         label = "Select date range",
