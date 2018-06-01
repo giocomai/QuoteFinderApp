@@ -23,7 +23,7 @@ dashboardPage(
               
               #### Box 1: Wordcloud ####
               tabBox(id = "wordcloud_plot",
-                     tabPanel("Interactive wordcloud",
+                     tabPanel("Wordcloud",
                               withLoader(ui_element = wordcloud2Output("wordcloud2"),
                                          type = "html",
                                          loader = "loader5"),
@@ -53,12 +53,32 @@ tags$head(tags$style(HTML("
                               ")))),
                               splitLayout(downloadButton("downloadHtml", "Download Html"),
                                           downloadButton("downloadPng", "Download PNG"))
-                             
-                              
 
                               # , 
                               # HTML("<b>Tip</b>: by clicking on a term in the wordcloud, only tweets including it are shown in the table below.")
-                     )
+                     ),
+
+#### Box1, Tab2: Barcharts #####
+tabPanel("Barcharts",
+         plotOutput('barchartGG'),
+         shiny::sliderInput(inputId = "MaxWordsInBarchart",
+                            label = "Max number of words",
+                            min = 0L, 
+                            max = 30L,
+                            value = 20L,
+                            sep = ".",
+                            width = "95%",
+                            round = TRUE
+         ),
+         downloadButton("downloadTidyWordCount", "Download as spreadsheet")),
+tabPanel("EP group comparison",
+         plotOutput("barchartComparisonGG"),
+         radioButtons(inputId = "wcOrBarchartComparison",
+                      label = "How would you like to compare?",
+                      choices = as.list(c("Comparison wordcloud",
+                                          "Commonality wordcloud",
+                                          "Comparison barchart")))
+         )
                      # ,
                      # tabPanel("Classic wordcloud",
                      #          plotOutput(outputId = "wordcloud"))

@@ -20,6 +20,19 @@ shinyServer(function(input, output, session) {
     updateSelectizeInput(session = session, inputId = "selectedHashtag", selected = "All tweets")
   })
   
+
+  
+  observeEvent(input$wordcloud_plot, {
+    if (input$wordcloud_plot=="EP group comparison") {
+      updateTabsetPanel(session = session,
+                        inputId = "wordcloud_filters",
+                        selected = "By EP group")
+      shiny::updateCheckboxGroupInput(session = session,
+                                      inputId = "EPgroup",
+                                      selected = c("S&D", "EPP"))
+    }
+  })
+  
   #### Reactive ####
   
   currentDataset <- reactive({
@@ -459,7 +472,7 @@ shinyServer(function(input, output, session) {
             
             for (i in stopwords::stopwords_getlanguages(source = "stopwords-iso")) {
               if (length(dataset$stopword[dataset$lang==i])!=0) {
-                dataset$stopword[dataset$lang==i] <- is.element(el = dataset$word[dataset$lang==i], set = c("via", stopwords::stopwords(language = i, source = "stopwords-iso")))
+                dataset$stopword[dataset$lang==i] <- is.element(el = dataset$word[dataset$lang==i], set = c("via", "retweeted", stopwords::stopwords(language = i, source = "stopwords-iso")))
               }
             }
             if (input$colourLanguage==TRUE) {
@@ -529,8 +542,132 @@ shinyServer(function(input, output, session) {
     if (is.null(wc2())==FALSE) wc2() %>% wordcloud2(size = if (is.null(input$sizeVarWC2)) 0.5 else input$sizeVarWC2,
                                                             color = wc2()$colour))
   
+  #### Barcharts ####
+  
+  output$barchartGG <- renderPlot({
+      currentDataset() %>%
+      select(clean_text) %>% 
+      unnest_tokens(input = clean_text, output = word) %>% 
+      # remove stopwords, if list for the relevant language is available, otherwise do nothing
+      when(is.element(el = input$language, set = stopwords::stopwords_getlanguages(source = "stopwords-iso")) ~
+             anti_join(., data_frame(word = c("via", stopwords::stopwords(language = input$language, source = "stopwords-iso"))), by = "word"),
+           ~ .) %>% 
+      count(word, sort = TRUE) %>% 
+      head(input$MaxWordsInBarchart) %>% 
+      arrange(n) %>% 
+      mutate(word = forcats::as_factor(word)) %>% 
+      ggplot(mapping = aes(x = word, y = n, fill = "singlecolor")) +
+      geom_col() +
+      scale_x_discrete("") +
+      scale_y_continuous("Number of occurrences") +
+      scale_fill_manual(values = "#08306B") +
+      coord_flip() +
+      theme_minimal() +
+      theme(axis.text=element_text(size=14),
+            axis.title=element_text(size=14,face="bold")) +
+      guides(fill=FALSE)
+  })
+  
+  
+  #### Comparisons ####
+  
+  output$barchartComparisonGG <- renderPlot({
+    
+    if (is.null(input$EPgroup)==FALSE&length(input$EPgroup)<5&length(input$EPgroup)>1) {
+      tidy_tweets <- currentDataset() %>%
+        select(clean_text, GroupShort) %>% 
+        filter(stringr::str_detect(string = GroupShort, pattern = paste(input$EPgroup, collapse = "|"))) %>% 
+        unnest_tokens(output = word, input = clean_text) %>% 
+        # remove stopwords, if list for the relevant language is available, otherwise do nothing
+        when(is.element(el = input$language, set = stopwords::stopwords_getlanguages(source = "stopwords-iso")) ~
+               anti_join(., data_frame(word = c("via", "retweeted", stopwords::stopwords(language = input$language, source = "stopwords-iso"))), by = "word"),
+             ~ .)
+      
+      if (input$wcOrBarchartComparison == "Comparison barchart") {
+        if (is.null(input$EPgroup)==FALSE&length(input$EPgroup)==2) {
+        temp <- tidy_tweets %>% 
+          count(word, GroupShort) %>%
+          filter(sum(n) >= 5) %>%
+          ungroup() %>%
+          spread(GroupShort, n, fill = 0) %>%
+          mutate_if(is.numeric, funs((. + 1) / sum(. + 1))) %>%
+          mutate(logratio = log(.[[2]] / .[[3]])) %>%
+          arrange(desc(logratio)) %>% 
+          group_by(logratio < 0) %>%
+          top_n(10, abs(logratio)) %>%
+          slice(1:10) %>% 
+          ungroup() %>%
+          mutate(word = reorder(word, logratio))
+        
+        temp %>% 
+          ggplot(aes(word, logratio, fill = logratio < 0)) +
+          geom_col() +
+          coord_flip() +
+          ylab("Log odds ratio") +
+          scale_x_discrete("") +
+          scale_fill_discrete(name = "", labels = colnames(temp)[2:3]) +
+          theme_minimal() +
+          theme(axis.text=element_text(size=14),
+                axis.title=element_text(size=14)) 
+        } else {
+          ggplot() +
+            labs(title = "Comparison barchart requires two EP groups") +
+            theme_void() +
+            theme(plot.title = element_text(colour = "#7F3D17"))
+        }
+        
+      } else {
+        temp <- tidy_tweets %>% 
+          group_by(word, GroupShort) %>% 
+          count() %>% 
+          ungroup() %>%
+          spread(GroupShort, n, fill = 0)
+        
+        rownames(temp) <- temp$word
+        
+        par(mar = rep(0, 4))
+        
+        temp <- temp %>% 
+          select(-word)
+        
+        if (input$wcOrBarchartComparison ==  "Commonality wordcloud") {
+          temp %>% 
+            commonality.cloud(random.order=FALSE, max.words = 100, scale = c(5, 0.5), family = "Carlito", font = 1)
+        } else if (input$wcOrBarchartComparison ==  "Comparison wordcloud") {
+          temp %>% 
+            comparison.cloud(random.order=FALSE, max.words = 100, scale = c(5, 0.5), family = "Carlito", font = 1)   
+        }
+      }
+      
+    }  else {
+      ggplot() +
+        labs(title = "Minimium 2 and maximum 4 EP groups are allowed") +
+        theme_void() +
+        theme(plot.title = element_text(colour = "#7F3D17"))
+    }
+    
+   
+  
+  })
+  
   #### Download ####
   
+  output$downloadTidyWordCount <- downloadHandler(
+    filename = function() {
+      paste0("QuoteFinderWordCount", ".csv")
+    },
+    content = function(file) {
+      write_csv(x = currentDataset() %>%
+                  select(clean_text) %>% 
+                  unnest_tokens(input = clean_text, output = word) %>% 
+                  # remove stopwords, if list for the relevant language is available, otherwise do nothing
+                  when(is.element(el = input$language, set = stopwords::stopwords_getlanguages(source = "stopwords-iso")) ~
+                         anti_join(., data_frame(word = c("via", "retweeted", stopwords::stopwords(language = input$language, source = "stopwords-iso"))), by = "word"),
+                       ~ .) %>% 
+                  count(word, sort = TRUE),
+                file)
+    }
+  )
   
   
   output$downloadPng <- downloadHandler(
