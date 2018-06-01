@@ -574,6 +574,7 @@ shinyServer(function(input, output, session) {
       paste0(paste0("<div class='col-sm-12'><b>Enabled filters</b>: language: <i>", input$language, "</i>;"),
              if (is.null(input$selectedHashtag)==TRUE) (" hashtag: <i>All tweets</i>;") else if (input$selectedHashtag=="All tweets") (" hashtag: <i>All tweets</i>;") else paste0(" hashtag: <i>#", input$selectedHashtag, "</i>;"),
              if (input$string!="") paste0(" string: <i>", input$string, "</i>;"),
+             if (is.null(input$EPgroup)==FALSE) paste0(" EP group: <i>", paste(input$EPgroup, collapse = ", "), "</i>;"),
              #" selected word: <i>", gsub(":.*","",input$selected_word), 
              "</div>")
   })
