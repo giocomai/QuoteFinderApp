@@ -120,7 +120,8 @@ tabPanel("EP group comparison",
                                  shiny::radioButtons(inputId = "sentimentL",
                                                      label = "Type of wordcloud",
                                                      choices = c("Unified",
-                                                                 "Sentiment"),
+                                                                 "Sentiment by tweet",
+                                                                 "Sentiment by word"),
                                                      inline = TRUE)
                 )
               ),

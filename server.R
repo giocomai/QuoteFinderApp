@@ -220,7 +220,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$colourMost_UI <- renderUI({
-    if (input$sentimentL=="Sentiment") {
+    if (input$sentimentL=="Sentiment by word") {
       colourInput(inputId = "colourPositive", label = "Colour for positive terms", value = "#00BFC4", showColour = "both")
     } else if (input$anyLanguage==TRUE&input$colourLanguage==TRUE) {
       pickerInput(
@@ -239,7 +239,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$colourLeast_UI <- renderUI({
-    if (input$sentimentL=="Sentiment") {
+    if (input$sentimentL=="Sentiment by word") {
       colourInput(inputId = "colourNegative", label = "Colour for negative terms", value = "#F8766D", showColour = "both")
     } else if (input$anyLanguage==TRUE&input$colourLanguage==TRUE) {
       # leave empty
@@ -363,7 +363,7 @@ shinyServer(function(input, output, session) {
                      anti_join(., data_frame(word = stopwords::stopwords(language = input$language, source = "stopwords-iso")), by = "word"),
                    ~ .)
           }
-          if (input$sentimentL=="Sentiment") {
+          if (input$sentimentL=="Sentiment by word") {
             # for log
             message(paste(Sys.time(), "WordcloudSentimentCreated", input$language, sep = "-"))
             par(mar = rep(0, 4))
@@ -428,7 +428,7 @@ shinyServer(function(input, output, session) {
       if (is.null(input$selectedHashtag)==FALSE) {
         
         ##### Wordcloud2 sentiment or unified #####
-        if (input$sentimentL=="Sentiment") {
+        if (input$sentimentL=="Sentiment by word") {
           if (input$language=="en") {
             sentimentDictionary <- tidytext::get_sentiments("bing")
           } else {
@@ -462,6 +462,28 @@ shinyServer(function(input, output, session) {
                                     false = if (is.null(input$colourPositive)) "#00BFC4" else input$colourPositive)) %>%
             select(-sentiment)
           
+        } else if (input$sentimentL=="Sentiment by tweet") {
+          
+          dataset <- currentDataset() %>% 
+            select(clean_text) %>%
+            mutate(sentiment = syuzhet::get_sentiment(char_v = clean_text, language = input$language)) %>% 
+            # remove neutral
+            filter(sentiment!=0) %>% 
+            mutate(sentiment = if_else(condition = sentiment>0, true = "positive", false = "negative")) %>% 
+            tidytext::unnest_tokens(input = clean_text, output = word) %>% 
+            # remove stopwords, if list for the relevant language is available, otherwise do nothing
+            when(is.element(el = input$language, set = stopwords::stopwords_getlanguages(source = "snowball")) ~
+                   anti_join(., data_frame(word = stopwords::stopwords(language = input$language, source = "snowball")), by = "word"),
+                 is.element(el = input$language, set = stopwords::stopwords_getlanguages(source = "stopwords-iso")) ~
+                   anti_join(., data_frame(word = stopwords::stopwords(language = input$language, source = "stopwords-iso")), by = "word"),
+                 ~ .) %>% 
+          count(word, sentiment, sort = TRUE) %>% 
+            slice(1:input$MaxWords) %>% 
+            mutate(colour = if_else(condition = sentiment=="negative",
+                                    true = if (is.null(input$colourNegative)) "#F8766D" else input$colourNegative,
+                                    false = if (is.null(input$colourPositive)) "#00BFC4" else input$colourPositive)) %>%
+            select(-sentiment)
+
         } else {
           
           if (input$anyLanguage==TRUE) {
@@ -526,7 +548,7 @@ shinyServer(function(input, output, session) {
         
         # add for log
         
-        if (input$sentimentL=="Sentiment") {
+        if (input$sentimentL=="Sentiment by word") {
           message(paste(Sys.time(), "Wordcloud2SentimentCreated", input$language, sep = "-"))
         } else {
           message(paste(Sys.time(), "Wordcloud2UnifiedCreated", input$language, sep = "-"))
