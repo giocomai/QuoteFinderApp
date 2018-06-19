@@ -24,6 +24,7 @@ dashboardPage(
               #### Box 1: Wordcloud ####
               tabBox(id = "wordcloud_plot",
                      tabPanel("Wordcloud",
+                              uiOutput("warning"), 
                               withLoader(ui_element = wordcloud2Output("wordcloud2"),
                                          type = "html",
                                          loader = "loader5"),
@@ -144,7 +145,13 @@ tabPanel("EP group comparison",
                                                    inline = TRUE)
                          #,actionButton("filterByGroup", "Filter", icon = icon("filter", class = "font-awesome"))
                 ),
-                tabPanel("By MEP", shiny::uiOutput(outputId = "MEPfilter_UI"))
+                tabPanel("By MEP", shiny::uiOutput(outputId = "MEPfilter_UI")),
+                tabPanel("By country", shiny::uiOutput(outputId = "country_filter_UI"))
+              #  ,
+              # tabPanel("By sentiment", shiny::checkboxGroupInput(inputId = "sentimentFilter",
+              #                                                      label = "Choose sentiment",
+              #                                                      choices = as.list(c("Positive", "Negative", "Neutral")),
+              #                                                      inline = TRUE))
               ), 
             box(actionButton(inputId = "reset",
                              label = "Reset filters",

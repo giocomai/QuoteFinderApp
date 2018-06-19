@@ -18,6 +18,7 @@ shinyServer(function(input, output, session) {
     updateCheckboxGroupInput(session = session, inputId = "EPgroup", selected = character(0))
     updateSelectizeInput(session = session, inputId = "MEPfilter", selected = character(0))
     updateSelectizeInput(session = session, inputId = "selectedHashtag", selected = "All tweets")
+    updateSelectizeInput(session = session, inputId = "countryFilter", selected = character(0))
   })
   
 
@@ -50,11 +51,18 @@ shinyServer(function(input, output, session) {
       dataset <- dataset %>%
         filter(date>=min(as.Date(input$dateRange))&date<=max(as.Date(input$dateRange))) 
     }
-    # filter language
+    # filter by language
     if (input$anyLanguage==FALSE) {
       dataset <- dataset %>% 
         filter(lang==input$language)
     }
+    
+    # filter by country
+    if (is.null(input$countryFilter)==FALSE) {
+      dataset <- dataset %>% 
+        filter(stringr::str_detect(string = NATIONALITY, pattern = paste(input$countryFilter, collapse = "|")))
+    }
+    
     #filter hashtag
     if(is.null(input$selectedHashtag)){
    
@@ -198,6 +206,12 @@ shinyServer(function(input, output, session) {
   
   #### UI ####
   
+  output$warning <- renderUI({
+    if (input$sentimentL=="Sentiment by tweet") {
+      HTML(text = "<b>Warning</b>: sentiment by tweet currently works with English tweets only")
+    }
+  })
+  
   output$hashtags_UI <- renderUI({
     shiny::selectizeInput(inputId = "selectedHashtag",
                           label = "Select hashtag",
@@ -208,6 +222,12 @@ shinyServer(function(input, output, session) {
   output$MEPfilter_UI <- renderUI({
     shiny::selectizeInput(inputId = "MEPfilter", label = "Filter by MEP",
                           choices = currentMEPs(),
+                          multiple = TRUE)
+  })
+  
+  output$country_filter_UI <- renderUI({
+    shiny::selectizeInput(inputId = "countryFilter", label = "Filter by country",
+                          choices = as.list(unique(dataset$NATIONALITY) %>% sort()),
                           multiple = TRUE)
   })
   
@@ -718,12 +738,11 @@ shinyServer(function(input, output, session) {
   
   output$table <- DT::renderDataTable({
     DT::datatable(data = currentDataset() %>% 
-      select(screen_name, date, text, Link, GroupShort) %>% 
-      arrange(desc(date))%>% 
-        head(30000) %>% 
-      rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"),
-    escape = FALSE, options = list(pageLength = 5, lengthMenu = c(3, 5, 10, 15, 20)), rownames=FALSE)
-      
+                    arrange(desc(time))%>%
+                    select(screen_name, date, text, Link, GroupShort) %>% 
+                    head(10000) %>% 
+                    rename(`Twitter handle` = screen_name, Date = date, Tweet = text, `EP Group` = "GroupShort"),
+                  escape = FALSE, options = list(pageLength = 5, lengthMenu = c(3, 5, 10, 15, 20)), rownames=FALSE)
   })
   
   ### InfoBox ####
@@ -734,6 +753,7 @@ shinyServer(function(input, output, session) {
              if (is.null(input$selectedHashtag)==TRUE) (" hashtag: <i>All tweets</i>;") else if (input$selectedHashtag=="All tweets") (" hashtag: <i>All tweets</i>;") else paste0(" hashtag: <i>#", input$selectedHashtag, "</i>;"),
              if (input$string!="") paste0(" string: <i>", input$string, "</i>;"),
              if (is.null(input$EPgroup)==FALSE) paste0(" EP group: <i>", paste(input$EPgroup, collapse = ", "), "</i>;"),
+             if (is.null(input$countryFilter)==FALSE) paste0(" Country: <i>", paste(input$countryFilter, collapse = ", "), "</i>;"),
              #" selected word: <i>", gsub(":.*","",input$selected_word), 
              "</div>")
   })
