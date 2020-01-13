@@ -1,5 +1,7 @@
 # EdjNet's QuoteFinder
 
+**N.B.: this is an old repository. EDJNet's Quote Finder has now become a full R package, which includes convenience functions to collect data and to deploy the dashboard with Docker. Find the new repository at [https://github.com/EDJNet/quotefinder]**
+
 This is the repository for EdjNet's QuoteFinder, a dashboard that facilitates exploring multiple sources related to EU affairs.
 
 It is deployed on EdjNet's website at this link: https://www.europeandatajournalism.eu/eng/Tools-for-journalists/Quote-Finder
